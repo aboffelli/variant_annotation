@@ -6,9 +6,14 @@ Script to parse and compare and identify in which gene each variant is located.
 
 import os
 
+flanking_regions = {'BRCA1, BRCA2': 150000,
+                    'CDH1, CHEK2, PTEN, STK11, TP53': 50000,
+                    'ATM,BARD1,BRIP1,CDKN2A,MRE11,NBN,PALB2,RAD50,RAD51C‚RAD51D': 20000
+                    }
+
 # Retrieve the positions of whole genes the genes that where sequenced
-gff = '/home/ar7343bo-s/Resources/gencode.v38lift37.annotation.gff3'
-whole_genes = '/home/ar7343bo-s/whole_gene_list.txt'
+gff = '/Users/student/Documents/gencode.v38lift37.annotation.gff3'
+whole_genes = '/Users/student/Documents/whole_gene_list.txt'
 
 gl = list()
 gene_dict = dict()
@@ -24,8 +29,12 @@ with open(gff, 'r') as resource, open(whole_genes, 'r') as gene_list:
                     if gene == gene_name:
                         chromosome = gff_line[0].strip("chr")
                         if chromosome not in gene_dict:
-                            gene_dict[chromosome] = {gene_name: (int(gff_line[3]), int(gff_line[4]))}
-                            break
+                            # TODO: Try to put the flanking regions check earlier.
+                            for key in flanking_regions:
+                                fr = flanking_regions[key]
+                                if gene in key:
+                                    gene_dict[chromosome] = {gene_name: (int(gff_line[3])-fr, int(gff_line[4])+fr)}
+                                    break
                         else:
                             gene_dict[chromosome][gene_name] = (int(gff_line[3]), int(gff_line[4]))
                             break
@@ -41,12 +50,12 @@ with open('number_var.txt', 'w') as out:
         on_fail = 0
         off_pass = 0
         off_fail = 0
-        with open(file, 'r') as vcf:
+        with open('Annotation/'+file, 'r') as vcf:
             for line in vcf:
                 if not line.startswith("#"):
                     line = line.split()
                     chrom = line[0]
-                    pos = line[2]
+                    pos = line[1]
                     filter_col = line[6]
                     if chrom in gene_dict:
                         for gene in gene_dict[chrom]:
@@ -55,13 +64,15 @@ with open('number_var.txt', 'w') as out:
                             if start < int(pos) < end:
                                 if filter_col == 'PASS':
                                     on_pass += 1
+                                    break
                                 else:  # Not PASS
                                     on_fail += 1
-                            else:  # Not inside the gene
-                                if filter_col == 'PASS':
-                                    off_pass += 1
-                                else:  # FAIL
-                                    off_fail += 1
+                                    break
+                        else:  # Not inside any gene
+                            if filter_col == 'PASS':
+                                off_pass += 1
+                            else:  # FAIL
+                                off_fail += 1
                     else:  # Chromosome that is not in the dict.
                         if filter_col == 'PASS':
                             off_pass += 1
