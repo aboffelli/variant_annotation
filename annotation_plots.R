@@ -18,7 +18,7 @@ novel_vs_known <- ggplot(melt(novel_table), aes(x=variable, y=value)) +
     ylab("Number of variants") +
     theme_classic()
 print(novel_vs_known)
-ggsave("novel_vs_known.pdf", plot=novel_vs_known)
+ggsave("Plots/novel_vs_known.pdf", plot=novel_vs_known)
 
 on_vs_off <- ggplot(melt(on_target_table), aes(x=variable, y=value)) +
     geom_boxplot(aes(fill=variable)) +
@@ -27,13 +27,13 @@ on_vs_off <- ggplot(melt(on_target_table), aes(x=variable, y=value)) +
     ylab("Number of variants") +
     theme_classic()
 print(on_vs_off)
-ggsave("on_vs_off.pdf", plot=on_vs_off)
+ggsave("Plots/on_vs_off.pdf", plot=on_vs_off)
 
 # consq <- ggplot(melt(consequence_table), aes(x=variable, y=value)) +
 #     geom_boxplot(aes(fill=variable)) +
 #     theme_classic()
 # print(consq)
-# ggsave("consequence.pdf", plot=consq)
+# ggsave("Plots/consequence.pdf", plot=consq)
 
 
 melted <- melt(novel_table)
@@ -46,7 +46,7 @@ p_novel_vs_known <- ggplot(a_table, aes(x=Group.1, y=Percentage, fill=Group.1)) 
     xlab("Group") +
     theme_classic()
 print(p_novel_vs_known)
-ggsave("p_novel_vs_known.pdf", plot=p_novel_vs_known)
+ggsave("Plots/p_novel_vs_known.pdf", plot=p_novel_vs_known)
 
 
 melted2 <- melt(on_target_table)
@@ -59,4 +59,4 @@ p_on_off <- ggplot(a_table2, aes(x=Group.1, y=Percentage, fill=Group.1)) +
     xlab("Group") +
     theme_classic()
 print(p_on_off)
-ggsave("p_on_vs_off.pdf", plot=p_on_off)
+ggsave("Plots/p_on_vs_off.pdf", plot=p_on_off)

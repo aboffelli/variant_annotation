@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get how many novel and known variants were filtered.
-echo -e "Sample\tKnown_Pass\tKnown_Fail\tNovel_Pass\tNovel_Fail" > novel_vs_know_filter.txt
+echo -e "Sample\tKnownPass\tKnownFail\tNovelPass\tNovelFail" > novel_vs_know_filter.txt
 
 for f in Annotation/*.vcf; do
     sample=$(basename "$f" .vcf);

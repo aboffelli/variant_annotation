@@ -20,7 +20,6 @@ filters = {"QD2S": 0, "MQ40": 0, "FS60": 0,
            "QD2I": 0, "FS200": 0, "SOR10": 0, "RPRS-20": 0
            }
 
-
 # Retrieve the positions of the genes that where sequenced
 if len(sys.argv) >= 3:
     gff = sys.argv[1]
@@ -53,11 +52,13 @@ if len(sys.argv) >= 3:
 
     list_of_files = os.listdir("Annotation/")
 
-    with open('number_var.txt', 'w') as out, open("on_target_fail.txt", 'w') as on, open("off_target_fail.txt",
-                                                                                         "w") as off:
+    with open('number_var.txt', 'w') as out, open("on_target_fail.txt", 'w') as on, \
+            open("off_target_fail.txt", "w") as off:
+
         # Header for number_var.txt
         print("Sample\tOnTargetPass\tOnTargetFail\tOffTargetPass\tOffTargetFail", file=out)
-        # Header for on_target_fail.txt and off_target_fail.txt
+
+        # Header for on_target_fail.txt, off_target_fail.txt.
         print("Sample", file=on, end="\t")
         print("Sample", file=off, end="\t")
         for key in filters:
@@ -70,10 +71,8 @@ if len(sys.argv) >= 3:
             sample = file.lstrip('fs_filtered_').rstrip(".vcf")
             on_fail_filters = filters.copy()
             off_fail_filters = filters.copy()
-            on_pass = 0
-            on_fail = 0
-            off_pass = 0
-            off_fail = 0
+            on_off_counter = {"on_pass": 0, "on_fail": 0, "off_pass": 0, "off_fail": 0}
+
             with open('Annotation/'+file, 'r') as vcf:
                 for line in vcf:
                     if not line.startswith("#"):
@@ -81,36 +80,41 @@ if len(sys.argv) >= 3:
                         chrom = line[0]
                         pos = line[1]
                         filter_col = line[6]
+
+                        # On or Off target
                         if chrom in gene_dict:
                             for gene in gene_dict[chrom]:
                                 start = gene_dict[chrom][gene][0]
                                 end = gene_dict[chrom][gene][1]
                                 if start < int(pos) < end:
                                     if filter_col == 'PASS':
-                                        on_pass += 1
+                                        on_off_counter["on_pass"] += 1
                                         break
                                     else:  # Not PASS
-                                        on_fail += 1
+                                        on_off_counter["on_fail"] += 1
                                         for f in filter_col.split(";"):
                                             on_fail_filters[f] += 1
                                         break
                             else:  # Not inside any gene
                                 if filter_col == 'PASS':
-                                    off_pass += 1
+                                    on_off_counter["off_pass"] += 1
                                 else:  # FAIL
-                                    off_fail += 1
+                                    on_off_counter["off_fail"] += 1
                                     for f in filter_col.split(";"):
                                         off_fail_filters[f] += 1
                         else:  # Chromosome that is not in the dict.
                             if filter_col == 'PASS':
-                                off_pass += 1
+                                on_off_counter["off_pass"] += 1
                             else:  # FAIL
-                                off_fail += 1
+                                on_off_counter["off_fail"] += 1
                                 for f in filter_col.split(";"):
                                     off_fail_filters[f] += 1
 
             # Print the values on file number_var.txt
-            print("{}\t{}\t{}\t{}\t{}".format(sample, on_pass, on_fail, off_pass, off_fail), file=out)
+            print(sample, file=out, end="\t")
+            for key in on_off_counter:
+                print(on_off_counter[key], file=out, end="\t")
+            print("", file=out)
 
             # Print the values on on_target_fail.txt and off_target_fail.txt
             print(sample, file=on, end="\t")
@@ -120,6 +124,69 @@ if len(sys.argv) >= 3:
                 print(off_fail_filters[key], file=off, end="\t")
             print("", file=on)
             print("", file=off)
+
+    with open("novel_vs_know_filter.txt", 'w') as nov_vs_kno, open("known_fail.txt", 'w') as kno, \
+            open("novel_fail.txt", 'w') as nov:
+
+        # Header for novel_vs_known_filter.txt
+        print("Sample\tKnownPass\tKnownFail\tNovelPass\tNovelFail", file=nov_vs_kno)
+
+        # Header for known_fail.txt and novel_fail.txt
+        print("Sample", file=kno, end="\t")
+        print("Sample", file=nov, end="\t")
+        for key in filters:
+            print(key, file=kno, end="\t")
+            print(key, file=nov, end="\t")
+        print("", file=kno)
+        print("", file=nov)
+
+        for file in list_of_files:
+            sample = file.lstrip('fs_filtered_').rstrip(".vcf")
+            kno_fail_filters = filters.copy()
+            nov_fail_filters = filters.copy()
+            k_n_counter = {"k_pass": 0, "k_fail": 0, "n_pass": 0, "n_fail": 0}
+
+            with open('Annotation/' + file, 'r') as vcf:
+                for line in vcf:
+                    if not line.startswith("#"):
+                        line = line.split()
+                        filter_col = line[6]
+                        exist = line[7].split('|')[1]
+
+                        if exist:  # Known
+                            if filter_col == 'PASS':
+                                k_n_counter["k_pass"] += 1
+                                continue
+                            else:  # FAIL
+                                k_n_counter["k_fail"] += 1
+                                for f in filter_col.split(";"):
+                                    kno_fail_filters[f] += 1
+                                continue
+                        else:  # Novel
+                            if filter_col == 'PASS':
+                                k_n_counter["n_pass"] += 1
+                                continue
+                            else:  # FAIL
+                                k_n_counter["n_fail"] += 1
+                                for f in filter_col.split(";"):
+                                    nov_fail_filters[f] += 1
+                                continue
+
+            # Print the values on file novel_vs_know_filter.txt
+            print(sample, file=nov_vs_kno, end="\t")
+            for key in k_n_counter:
+                print(k_n_counter[key], file=nov_vs_kno, end="\t")
+            print("", file=nov_vs_kno)
+
+            # Print the values on on_target_fail.txt and off_target_fail.txt
+            print(sample, file=kno, end="\t")
+            print(sample, file=nov, end="\t")
+            for key in filters:
+                print(kno_fail_filters[key], file=kno, end="\t")
+                print(nov_fail_filters[key], file=nov, end="\t")
+            print("", file=kno)
+            print("", file=nov)
+
 
 else:
     print("Usage:\npython variant_position_parser.py file.gff gene_list.txt")
