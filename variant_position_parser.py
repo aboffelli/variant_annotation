@@ -6,14 +6,17 @@ Script to parse and compare and identify in which gene each variant is located.
 
 import os
 
-flanking_regions = {'BRCA1, BRCA2': 150000,
-                    'CDH1, CHEK2, PTEN, STK11, TP53': 50000,
-                    'ATM,BARD1,BRIP1,CDKN2A,MRE11,NBN,PALB2,RAD50,RAD51C‚RAD51D': 20000
+flanking_regions = {'BRCA1': 150000, 'BRCA2': 150000, 'CDH1': 50000,
+                    'CHEK2': 50000, 'PTEN': 50000, 'STK11': 50000,
+                    'TP53': 50000, 'ATM': 20000, 'BARD1': 20000,
+                    'BRIP1': 20000, 'CDKN2A': 20000, 'MRE11': 20000,
+                    'NBN': 20000, 'PALB2': 20000, 'RAD50': 20000,
+                    'RAD51C': 20000, 'RAD51D': 20000
                     }
 
 # Retrieve the positions of whole genes the genes that where sequenced
-gff = '/Users/student/Documents/gencode.v38lift37.annotation.gff3'
-whole_genes = '/Users/student/Documents/whole_gene_list.txt'
+gff = '/home/ar7343bo-s/Resources/gencode.v38lift37.annotation.gff3'
+whole_genes = '/home/ar7343bo-s/whole_gene_list.txt'
 
 gl = list()
 gene_dict = dict()
@@ -28,15 +31,16 @@ with open(gff, 'r') as resource, open(whole_genes, 'r') as gene_list:
                 for gene in gl:
                     if gene == gene_name:
                         chromosome = gff_line[0].strip("chr")
-                        if chromosome not in gene_dict:
-                            # TODO: Try to put the flanking regions check earlier.
-                            for key in flanking_regions:
-                                fr = flanking_regions[key]
-                                if gene in key:
-                                    gene_dict[chromosome] = {gene_name: (int(gff_line[3])-fr, int(gff_line[4])+fr)}
-                                    break
+                        if gene in flanking_regions:
+                            fr = flanking_regions[gene]
                         else:
-                            gene_dict[chromosome][gene_name] = (int(gff_line[3]), int(gff_line[4]))
+                            fr = 0
+                        if chromosome not in gene_dict:
+                            gene_dict[chromosome] = {gene_name: (int(gff_line[3])-fr, int(gff_line[4])+fr)}
+                            break
+
+                        else:
+                            gene_dict[chromosome][gene_name] = (int(gff_line[3])-fr, int(gff_line[4])+fr)
                             break
 
 list_of_files = os.listdir("/home/ar7343bo-s/VcfTest/Annotation")
