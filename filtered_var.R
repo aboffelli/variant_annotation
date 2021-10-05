@@ -11,10 +11,10 @@ setwd("~/Box/Notes")
 # setwd("C:\\Users\\Arthu\\Box\\Notes")
 
 # Load tables
-t_table <- as.data.frame(read.table('Tables/hf-ml_comparison.txt', header=T, sep="\t"))
+t_table <- as.data.frame(read.table('hf-ml_comparison.txt', header=T, sep="\t"))
 t_table$Filtering_Type <- factor(t_table$Filtering_Type)
 
-f_table <- as.data.frame(read.table('Tables/filters_tab.txt', header=T, sep="\t"))
+f_table <- as.data.frame(read.table('filters_tab.txt', header=T, sep="\t"))
 f_table <- f_table[,-1]
 
 
