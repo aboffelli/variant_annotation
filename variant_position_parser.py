@@ -69,9 +69,7 @@ if len(sys.argv) >= 3:
         for file in list_of_files:
             sample = file.lstrip('fs_filtered_').rstrip(".vcf")
             on_fail_filters = filters.copy()
-            print(on_fail_filters)
             off_fail_filters = filters.copy()
-            print(off_fail_filters)
             on_pass = 0
             on_fail = 0
             off_pass = 0
@@ -122,8 +120,6 @@ if len(sys.argv) >= 3:
                 print(off_fail_filters[key], file=off, end="\t")
             print("", file=on)
             print("", file=off)
-            print(on_fail_filters)
-            print(off_fail_filters)
 
 else:
     print("Usage:\npython variant_position_parser.py file.gff gene_list.txt")
