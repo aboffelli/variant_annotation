@@ -52,10 +52,10 @@ if len(sys.argv) >= 3:
 
     list_of_files = os.listdir("Annotation/")
 
-    with open('on_vs_off_filter.txt', 'w') as out, open("on_target_fail.txt", 'w') as on, \
+    with open('on_vs_off.txt', 'w') as out, open("on_target_fail.txt", 'w') as on, \
             open("off_target_fail.txt", "w") as off:
 
-        # Header for on_vs_off_filter.txt
+        # Header for on_vs_off.txt
         out.write("Sample\tOnTargetPass\tOnTargetFail\tOffTargetPass\tOffTargetFail")
 
         # Header for on_target_fail.txt, off_target_fail.txt.
@@ -108,7 +108,7 @@ if len(sys.argv) >= 3:
                                 for f in filter_col.split(";"):
                                     off_fail_filters[f] += 1
 
-            # Print the values on file on_vs_off_filter.txt
+            # Print the values on file on_vs_off.txt
             out.write("\n" + sample)
             for key in on_off_counter:
                 out.write("\t" + str(on_off_counter[key]))
@@ -118,7 +118,7 @@ if len(sys.argv) >= 3:
             off.write("\n" + sample)
             for key in filters:
                 on.write("\t" + str(on_fail_filters[key]))
-                off.write("\t" + str(on_fail_filters[key]))
+                off.write("\t" + str(off_fail_filters[key]))
 
     with open("novel_vs_known.txt", 'w') as nov_vs_kno, open("known_fail.txt", 'w') as kno, \
             open("novel_fail.txt", 'w') as nov:
