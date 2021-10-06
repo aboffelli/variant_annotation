@@ -52,20 +52,18 @@ if len(sys.argv) >= 3:
 
     list_of_files = os.listdir("Annotation/")
 
-    with open('number_var.txt', 'w') as out, open("on_target_fail.txt", 'w') as on, \
+    with open('on_vs_off_filter.txt', 'w') as out, open("on_target_fail.txt", 'w') as on, \
             open("off_target_fail.txt", "w") as off:
 
-        # Header for number_var.txt
-        print("Sample\tOnTargetPass\tOnTargetFail\tOffTargetPass\tOffTargetFail", file=out)
+        # Header for on_vs_off_filter.txt
+        out.write("Sample\tOnTargetPass\tOnTargetFail\tOffTargetPass\tOffTargetFail")
 
         # Header for on_target_fail.txt, off_target_fail.txt.
-        print("Sample", file=on, end="\t")
-        print("Sample", file=off, end="\t")
+        on.write("Sample")
+        off.write("Sample")
         for key in filters:
-            print(key, file=on, end="\t")
-            print(key, file=off, end="\t")
-        print("", file=on)
-        print("", file=off)
+            on.write("\t" + key)
+            off.write("\t" + key)
 
         for file in list_of_files:
             sample = file.lstrip('fs_filtered_').rstrip(".vcf")
@@ -110,35 +108,30 @@ if len(sys.argv) >= 3:
                                 for f in filter_col.split(";"):
                                     off_fail_filters[f] += 1
 
-            # Print the values on file number_var.txt
-            print(sample, file=out, end="\t")
+            # Print the values on file on_vs_off_filter.txt
+            out.write("\n" + sample)
             for key in on_off_counter:
-                print(on_off_counter[key], file=out, end="\t")
-            print("", file=out)
+                out.write("\t" + str(on_off_counter[key]))
 
             # Print the values on on_target_fail.txt and off_target_fail.txt
-            print(sample, file=on, end="\t")
-            print(sample, file=off, end="\t")
+            on.write("\n" + sample)
+            off.write("\n" + sample)
             for key in filters:
-                print(on_fail_filters[key], file=on, end="\t")
-                print(off_fail_filters[key], file=off, end="\t")
-            print("", file=on)
-            print("", file=off)
+                on.write("\t" + str(on_fail_filters[key]))
+                off.write("\t" + str(on_fail_filters[key]))
 
-    with open("novel_vs_know_filter.txt", 'w') as nov_vs_kno, open("known_fail.txt", 'w') as kno, \
+    with open("novel_vs_known.txt", 'w') as nov_vs_kno, open("known_fail.txt", 'w') as kno, \
             open("novel_fail.txt", 'w') as nov:
 
-        # Header for novel_vs_known_filter.txt
-        print("Sample\tKnownPass\tKnownFail\tNovelPass\tNovelFail", file=nov_vs_kno)
+        # Header for novel_vs_known.txt
+        nov_vs_kno.write("Sample\tKnownPass\tKnownFail\tNovelPass\tNovelFail")
 
         # Header for known_fail.txt and novel_fail.txt
-        print("Sample", file=kno, end="\t")
-        print("Sample", file=nov, end="\t")
+        kno.write("Sample")
+        nov.write("Sample")
         for key in filters:
-            print(key, file=kno, end="\t")
-            print(key, file=nov, end="\t")
-        print("", file=kno)
-        print("", file=nov)
+            kno.write("\t" + key)
+            nov.write("\t" + key)
 
         for file in list_of_files:
             sample = file.lstrip('fs_filtered_').rstrip(".vcf")
@@ -172,20 +165,17 @@ if len(sys.argv) >= 3:
                                     nov_fail_filters[f] += 1
                                 continue
 
-            # Print the values on file novel_vs_know_filter.txt
-            print(sample, file=nov_vs_kno, end="\t")
+            # Print the values on file novel_vs_known.txt
+            nov_vs_kno.write("\n" + sample)
             for key in k_n_counter:
-                print(k_n_counter[key], file=nov_vs_kno, end="\t")
-            print("", file=nov_vs_kno)
+                nov_vs_kno.write("\t" + str(k_n_counter[key]))
 
             # Print the values on on_target_fail.txt and off_target_fail.txt
-            print(sample, file=kno, end="\t")
-            print(sample, file=nov, end="\t")
+            kno.write("\n" + sample)
+            nov.write("\n" + sample)
             for key in filters:
-                print(kno_fail_filters[key], file=kno, end="\t")
-                print(nov_fail_filters[key], file=nov, end="\t")
-            print("", file=kno)
-            print("", file=nov)
+                kno.write("\t" + str(kno_fail_filters[key]))
+                nov.write("\t" + str(nov_fail_filters[key]))
 
 
 else:

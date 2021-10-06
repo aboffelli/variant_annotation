@@ -6,8 +6,8 @@ library(reshape2)
 setwd("~/Box/Notes/Tables")
 
 
-novel_table <- read.table('novel_vs_know_filter.txt', header = T, sep="\t")[,-1]
-on_target_table <- read.table('number_var.txt', header = T, sep="\t")[,-1]
+novel_table <- read.table('novel_vs_known.txt', header = T, sep="\t")[,-1]
+on_target_table <- read.table('on_vs_off.txt', header = T, sep="\t")
 consequence_table <- read.table('consequence_list.txt', header=T, sep="\t")[,-1]
 
 
