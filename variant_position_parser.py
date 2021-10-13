@@ -28,8 +28,8 @@ if len(sys.argv) >= 3:
     gl = list()
     gene_dict = dict()
     with open(gff, 'r') as resource, open(whole_genes, 'r') as gene_list:
-        for line in gene_list:
-            gl.append(line.strip())
+        for line_split in gene_list:
+            gl.append(line_split.strip())
         for gff_line in resource:
             if not gff_line.startswith("#"):
                 gff_line = gff_line.strip().split('\t')
@@ -51,6 +51,10 @@ if len(sys.argv) >= 3:
                                 break
 
     list_of_files = os.listdir("Annotation/")
+    new_directories = ['Annotation/OnFail/', 'Annotation/OffFail/', 'Annotation/KnownFail/', 'Annotation/NovelFail/']
+    for directory in new_directories:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
     with open('on_vs_off.txt', 'w') as out, open("on_target_fail.txt", 'w') as on, \
             open("off_target_fail.txt", "w") as off:
@@ -71,13 +75,14 @@ if len(sys.argv) >= 3:
             off_fail_filters = filters.copy()
             on_off_counter = {"on_pass": 0, "on_fail": 0, "off_pass": 0, "off_fail": 0}
 
-            with open('Annotation/'+file, 'r') as vcf:
+            with open('Annotation/'+file, 'r') as vcf, open('Annotation/OnFail/on_fail_'+file, 'w') as on_fail_out, \
+                    open('Annotation/OffFail/off_fail_'+file, 'w') as off_fail_out:
                 for line in vcf:
                     if not line.startswith("#"):
-                        line = line.split()
-                        chrom = line[0]
-                        pos = line[1]
-                        filter_col = line[6]
+                        line_split = line.split()
+                        chrom = line_split[0]
+                        pos = line_split[1]
+                        filter_col = line_split[6]
 
                         # On or Off target
                         if chrom in gene_dict:
@@ -90,6 +95,7 @@ if len(sys.argv) >= 3:
                                         break
                                     else:  # Not PASS
                                         on_off_counter["on_fail"] += 1
+                                        on_fail_out.write(line)
                                         for f in filter_col.split(";"):
                                             on_fail_filters[f] += 1
                                         break
@@ -98,6 +104,7 @@ if len(sys.argv) >= 3:
                                     on_off_counter["off_pass"] += 1
                                 else:  # FAIL
                                     on_off_counter["off_fail"] += 1
+                                    off_fail_out.write(line)
                                     for f in filter_col.split(";"):
                                         off_fail_filters[f] += 1
                         else:  # Chromosome that is not in the dict.
@@ -139,12 +146,13 @@ if len(sys.argv) >= 3:
             nov_fail_filters = filters.copy()
             k_n_counter = {"k_pass": 0, "k_fail": 0, "n_pass": 0, "n_fail": 0}
 
-            with open('Annotation/' + file, 'r') as vcf:
+            with open('Annotation/' + file, 'r') as vcf, open('Annotation/KnownFail/known_fail_'+file, 'w') as known_fail_out, \
+                    open('Annotation/NovelFail/novel_fail_'+file, 'w') as novel_fail_out:
                 for line in vcf:
                     if not line.startswith("#"):
-                        line = line.split()
-                        filter_col = line[6]
-                        exist = line[7].split('|')[1]
+                        line_split = line.split()
+                        filter_col = line_split[6]
+                        exist = line_split[7].split('|')[1]
 
                         if exist:  # Known
                             if filter_col == 'PASS':
@@ -152,6 +160,7 @@ if len(sys.argv) >= 3:
                                 continue
                             else:  # FAIL
                                 k_n_counter["k_fail"] += 1
+                                known_fail_out.write(line)
                                 for f in filter_col.split(";"):
                                     kno_fail_filters[f] += 1
                                 continue
@@ -161,6 +170,7 @@ if len(sys.argv) >= 3:
                                 continue
                             else:  # FAIL
                                 k_n_counter["n_fail"] += 1
+                                novel_fail_out.write(line)
                                 for f in filter_col.split(";"):
                                     nov_fail_filters[f] += 1
                                 continue
