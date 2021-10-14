@@ -2,7 +2,14 @@
 
 for dir in *Fail; do
     filename=${dir##/};
-    line=$(
-        grep "SOR3" $dir/*.vcf | grep -oP "SOR=.+?;" | tr -d "SOR=;"| tr "\n" "\t"| less -N)
-        echo ${filename} $line | tr " " "\t" >> sor3_values_table.txt;
+    grep "SOR3" $dir/*.vcf | grep -oP "SOR=.+?;" | tr -d "SOR=;" | while read number; do
+        echo ${filename} $number | tr " " "\t" >> ${filename}_sor3_values_table.txt;
+    done
+done
+
+for dir in NovelO*; do
+    filename=${dir##/};
+    grep "SOR3" $dir/*.vcf | grep -oP "SOR=.+?;" | tr -d "SOR=;" | while read number; do
+        echo ${filename} $number | tr " " "\t" >> ${filename}_sor3_values_table.txt;
+    done
 done
