@@ -47,18 +47,18 @@ if len(sys.argv) >= 3:
 
 ########################################################################################################################
     # Create the new directories
-    list_of_files = os.listdir("Annotation/")
+    list_of_files = os.listdir("Annotation/Edited")
     for file in list_of_files.copy():
         if '.vcf' not in file:
             list_of_files.remove(file)
-    new_directories = ['Annotation/KnownOnFail/',
-                       'Annotation/KnownOffFail/',
-                       'Annotation/KnownOnPass/',
-                       'Annotation/KnownOffPass/',
-                       'Annotation/NovelOnFail/',
-                       'Annotation/NovelOffFail/',
-                       'Annotation/NovelOnPass/',
-                       'Annotation/NovelOffPass/']
+    new_directories = ['Annotation/Edited/KnownOnFail/',
+                       'Annotation/Edited/KnownOffFail/',
+                       'Annotation/Edited/KnownOnPass/',
+                       'Annotation/Edited/KnownOffPass/',
+                       'Annotation/Edited/NovelOnFail/',
+                       'Annotation/Edited/NovelOffFail/',
+                       'Annotation/Edited/NovelOnPass/',
+                       'Annotation/Edited/NovelOffPass/']
 
     for directory in new_directories:
         if not os.path.exists(directory):
@@ -104,15 +104,15 @@ if len(sys.argv) >= 3:
             counter = {"k_on_pass": 0, "k_on_fail": 0, "k_off_pass": 0, "k_off_fail": 0,
                        "n_on_pass": 0, "n_on_fail": 0, "n_off_pass": 0, "n_off_fail": 0}
 
-            with open('Annotation/'+file, 'r') as vcf, \
-                    open('Annotation/KnownOnFail/k_on_fail_'+file, 'w') as k_on_fail_out, \
-                    open('Annotation/KnownOffFail/k_off_fail_'+file, 'w') as k_off_fail_out, \
-                    open('Annotation/KnownOnPass/k_on_pass_'+file, 'w') as k_on_pass_out, \
-                    open('Annotation/KnownOffPass/k_off_pass_'+file, 'w') as k_off_pass_out, \
-                    open('Annotation/NovelOnFail/n_on_fail_'+file, 'w') as n_on_fail_out, \
-                    open('Annotation/NovelOffFail/n_off_fail_'+file, 'w') as n_off_fail_out, \
-                    open('Annotation/NovelOnPass/n_on_pass_'+file, 'w') as n_on_pass_out, \
-                    open('Annotation/NovelOffPass/n_off_pass_'+file, 'w') as n_off_pass_out:
+            with open('Annotation/Edited/'+file, 'r') as vcf, \
+                    open('Annotation/Edited/KnownOnFail/k_on_fail_'+file, 'w') as k_on_fail_out, \
+                    open('Annotation/Edited/KnownOffFail/k_off_fail_'+file, 'w') as k_off_fail_out, \
+                    open('Annotation/Edited/KnownOnPass/k_on_pass_'+file, 'w') as k_on_pass_out, \
+                    open('Annotation/Edited/KnownOffPass/k_off_pass_'+file, 'w') as k_off_pass_out, \
+                    open('Annotation/Edited/NovelOnFail/n_on_fail_'+file, 'w') as n_on_fail_out, \
+                    open('Annotation/Edited/NovelOffFail/n_off_fail_'+file, 'w') as n_off_fail_out, \
+                    open('Annotation/Edited/NovelOnPass/n_on_pass_'+file, 'w') as n_on_pass_out, \
+                    open('Annotation/Edited/NovelOffPass/n_off_pass_'+file, 'w') as n_off_pass_out:
 
                 for line in vcf:
                     # Get the information we need of each line.
