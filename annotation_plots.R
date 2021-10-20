@@ -4,7 +4,8 @@ library(reshape2)
 library(gridExtra)
 
 # Mac
-setwd("~/Box/Notes/Tables")
+setwd("~/Box/Notes/Tables/Sor4")
+
 
 fail_plot <- function(table, plot_name='') {
     p <- ggplot(data=melt(table), aes(x=variable, y=value)) +
@@ -52,7 +53,7 @@ type_comparison <- plot_box(type_table)
 
 
 a_table <- percentage(type_table)
-write.table(a_table, file="percentage_novel_vs_known.txt", sep="\t", row.names = F, quote = F)
+#write.table(a_table, file="percentage_novel_vs_known.txt", sep="\t", row.names = F, quote = F)
 
 
 p_type_comparison <- ggplot(a_table, aes(x=Group, y=Percentage, fill=Group)) +
