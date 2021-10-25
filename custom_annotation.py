@@ -27,8 +27,7 @@ else:
 
 # Complement dictionary
 complement_dictionary = {'A': 'T', 'C': 'G',
-                         'T': 'A', 'G': 'C',
-                         '-': '-'}
+                         'T': 'A', 'G': 'C'}
 # Load RSCU dictionary
 rscu_dictionary = {"TTT": 0.92, "TTC": 1.08, "TTA": 0.46, "TTG": 0.77,
                    "CTT": 0.80, "CTC": 1.16, "CTA": 0.43,
@@ -62,20 +61,28 @@ with open(ese_file) as ese, open(ess_file) as ess:
         ess_set.add(line.strip())
 
 
-# TODO: Change flanking sequence (FS) to something else, including in the header.
-with open(test_file) as vcf:
+with open(test_file) as vcf, open("/Users/student/Documents/test_output.vcf", 'w') as out_vcf:
     for line in vcf:
-        # Do header stuff
+        # Header stuff
         if line.startswith("#"):
-            # TODO: add this line to the headers, after '##INFO=<ID=ExcessHet'
-            #   ##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using
-            #   Fisher's exact test to detect strand bias">
+            line = line.strip()
+            # Add FS info line
+            if line.startswith('##INFO=<ID=ExcessHet'):
+                print(line, file=out_vcf)
+                print("""##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test \
+to detect strand bias">""", file=out_vcf)
 
-            # TODO: Change CSQ line in the header '##INFO=<ID=CSQ'
-            #   New CSQ Feature|Existing_variant|STRAND|EXON|INTRON|Consequence|Codons|AF|
-            #   EUR_AF|SweGen_AF|gnomAD_AF|gnomAD_NFE_AF|PhyloP|GERP|delta_RSCU|ESEs_REF|
-            #   ESEs_ALT|ESSs_REF|ESSs_ALT"
-            pass
+            # Extend CSQ fields
+            elif line.startswith('##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from '
+                                 'Ensembl VEP. Format:'):
+                print(line.strip('">') + '|delta_RSCU|ESEs_REF|ESEs_ALT|ESSs_REF|ESSs_ALT">', file=out_vcf)
+
+            elif line.startswith('##INFO=<ID=FS,Number=1,Type=String,Description="Flanking sequence">'):
+                line = re.sub("ID=FS", "ID=FSEQ", line)
+                print(line, file=out_vcf)
+
+            else:  # All other header lines.
+                print(line, file=out_vcf)
 
         # Non-header stuff
         else:
@@ -111,11 +118,10 @@ with open(test_file) as vcf:
                     delta_rscu = round(rscu_dictionary[alt_codon]
                                        - rscu_dictionary[ref_codon], 2)
 
-                # Check for ESE and ESS in exonic variants
-                if exon:
+                # Check for ESE and ESS in exonic SNV variants
+                if exon and (len(split_line[3])+len(split_line[4]) == 2):
                     # get surrounding sequence
-                    # TODO: Ask how to treat indels
-                    seq = re.search('(\w{5})\[(\S+)\/(\S+)\](\w{5})',
+                    seq = re.search(r'(\w{5})\[(\S+)\/(\S+)\](\w{5})',
                                     flanking_seq)
                     ref_seq = ''.join(seq.group(1, 2, 4))
                     alt_seq = ''.join(seq.group(1, 3, 4))
@@ -152,9 +158,9 @@ with open(test_file) as vcf:
 
             # Join the line together again
             transcripts = ','.join(transcripts)
-            split_line[7] = re.sub(r'CSQ=(\S.+)', 'CSQ=' + transcripts,
+            # Change FS= to FSEQ= in the flanking sequence
+            line_info = re.sub(r'FS(=\D)', r'FSEQ\g<1>', line_info)
+            split_line[7] = re.sub(r'(CSQ=)\S.+', r'\g<1>' + transcripts,
                                    line_info)
-            print(line.strip())
             line = '\t'.join(split_line)
-            print(line + '\n')
-            # TODO: Write the line to the output
+            print(line, file=out_vcf)
