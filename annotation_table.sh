@@ -1,16 +1,25 @@
 #!/bin/bash
 
 # Get how many novel and known variants were filtered.
-echo -e "Sample\tKnownPass\tKnownFail\tNovelPass\tNovelFail" > novel_vs_know_filter.txt
+for dir in *Fail/; do
+    filename=${dir##/};
+    echo -e "Sample\tQD2S\tMQ40\tFS60\tSOR4\tMQRS-12.5\tRPRS-8\tQD2I\tFS200\tSOR10\tRPRS-20" > ${filename%/}_filters_tab.txt
 
-for f in Annotation/*.vcf; do
-    sample=$(basename "$f" .vcf);
-    line=$(
-        grep -v "#" $f | grep "PASS" | cut -d "|" -f2 | grep "rs" | wc -l;
-        grep -v "#" $f | grep -v "PASS" | cut -d "|" -f2 | grep "rs" | wc -l;
-        grep -v "#" $f | grep "PASS" | cut -d "|" -f2 | grep -v "rs" | wc -l;
-        grep -v "#" $f | grep -v "PASS" | cut -d "|" -f2 | grep -v "rs" | wc -l);
-    echo $sample $line | tr " " "\t" >> novel_vs_know_filter.txt;
+    for file in $dir/*.vcf; do
+        sample=$(basename "$file" .vcf);
+        line=$(
+            grep -v "^#" $file | grep -c "QD2S";
+            grep -v "^#" $file | grep -c "MQ40";
+            grep -v "^#" $file | grep -c "FS60";
+            grep -v "^#" $file | grep -c "SOR4";
+            grep -v "^#" $file | grep -c "MQRS-12.5";
+            grep -v "^#" $file | grep -c "RPRS-8";
+            grep -v "^#" $file | grep -c "QD2I";
+            grep -v "^#" $file | grep -c "FS200";
+            grep -v "^#" $file | grep -c "SOR10";
+            grep -v "^#" $file | grep -c "RPRS-20");
+        echo ${sample} $line | tr ' ' '\t' >> ${filename%/}_filters_tab.txt;
+    done
 done
 
 

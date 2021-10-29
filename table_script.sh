@@ -2,7 +2,7 @@
 
 # Create a tab delimited table with the number of variants removed with each filter for each file.
 
-echo -e "Sample\tQD2S\tMQ40\tFS60\tSOR3\tMQRS-12.5\tRPRS-8\tQD2I\tFS200\tSOR10\tRPRS-20" > filters_tab.txt
+echo -e "Sample\tQD2S\tMQ40\tFS60\tSOR4\tMQRS-12.5\tRPRS-8\tQD2I\tFS200\tSOR10\tRPRS-20" > filters_tab.txt
 
 for file in HardFiltering/Merged/*.vcf; do
     sample=$(basename "$file" .vcf);
@@ -10,7 +10,7 @@ for file in HardFiltering/Merged/*.vcf; do
         grep -v "^#" $file | grep -c "QD2S";
         grep -v "^#" $file | grep -c "MQ40";
         grep -v "^#" $file | grep -c "FS60";
-        grep -v "^#" $file | grep -c "SOR3";
+        grep -v "^#" $file | grep -c "SOR4";
         grep -v "^#" $file | grep -c "MQRS-12.5";
         grep -v "^#" $file | grep -c "RPRS-8";
         grep -v "^#" $file | grep -c "QD2I";

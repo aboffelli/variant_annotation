@@ -4,7 +4,7 @@ library(reshape2)
 library(gridExtra)
 
 # Mac
-setwd("~/Box/Notes/Tables/Sor4")
+setwd("~/Box/Notes/Tables")
 
 
 fail_plot <- function(table, plot_name='') {
@@ -39,20 +39,24 @@ percentage <- function(table) {
 
 double_percentage_plot <- function(p_table, plot_name='', cols=c('darkred', 'darkblue')) {
     p <- ggplot(p_table, aes(x=Group, y=Percentage, fill=Group)) +
-        geom_bar(stat='identity') +
+        geom_bar(stat='identity', position = 'dodge') +
         scale_fill_manual(values=cols) +
+        geom_text(aes(label=Percentage), position=position_dodge(width=0.9), vjust=-0.25) +
         theme_classic()
     return(p)
 }
 ################################################################################
 type_table <- read.table('type_comparison.txt', header = T, sep="\t")[,-1]
+type_table_S4 <- read.table('Sor4/type_comparison.txt', header = T, sep="\t")[,-1]
 
 type_comparison <- plot_box(type_table)
+type_comparison_S4 <- plot_box(type_table_S4) 
 # print(type_comparison)
 # ggsave("Plots/type_comparison.pdf", plot=type_comparison)
 
 
 a_table <- percentage(type_table)
+a_table_S4 <- percentage(type_table_S4)
 #write.table(a_table, file="percentage_novel_vs_known.txt", sep="\t", row.names = F, quote = F)
 
 
@@ -61,17 +65,31 @@ p_type_comparison <- ggplot(a_table, aes(x=Group, y=Percentage, fill=Group)) +
     scale_fill_manual(values=c("aquamarine", "coral", "cadetblue1", "lightpink1", "darkolivegreen1", "lightgoldenrod1", "cornflowerblue", "blueviolet")) +
     theme_classic()
 
+p_type_comparison_S4 <- ggplot(a_table_S4, aes(x=Group, y=Percentage, fill=Group)) +
+    geom_bar(stat='identity') +
+    scale_fill_manual(values=c("aquamarine", "coral", "cadetblue1", "lightpink1", "darkolivegreen1", "lightgoldenrod1", "cornflowerblue", "blueviolet")) +
+    theme_classic()
+
 #ggsave("Plots/p_type_table.pdf", plot=p_type_comparison)
 
-grid.arrange(type_comparison, p_type_comparison)
+grid.arrange(type_comparison, type_comparison_S4)
+grid.arrange(p_type_comparison, p_type_comparison_S4)
 
 known_on_sum <- double_percentage_plot(percentage(type_table[,1:2]), 'Known On', c("aquamarine", "coral"))
+known_on_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,1:2]), 'Known On', c("aquamarine", "coral"))
 known_off_sum <- double_percentage_plot(percentage(type_table[,3:4]), 'Known Off', c("cadetblue1", "lightpink1"))
+known_off_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,3:4]), 'Known Off', c("cadetblue1", "lightpink1"))
 novel_on_sum <- double_percentage_plot(percentage(type_table[,5:6]), "Novel On", c("darkolivegreen1", "lightgoldenrod1"))
+novel_on_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,5:6]), "Novel On", c("darkolivegreen1", "lightgoldenrod1"))
 novel_off_sum <- double_percentage_plot(percentage(type_table[,7:8]), 'Novel Off', c("cornflowerblue", "blueviolet"))
+novel_off_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,7:8]), 'Novel Off', c("cornflowerblue", "blueviolet"))
 
-grid.arrange(known_on_sum, known_off_sum, novel_on_sum, novel_off_sum)
+a <- grid.arrange(known_on_sum, known_on_sum_S4)
+b <- grid.arrange(known_off_sum, known_off_sum_S4)
+c <- grid.arrange(novel_on_sum, novel_on_sum_S4)
+d <- grid.arrange(novel_off_sum, novel_off_sum_S4)
 
+grid.arrange(a, b, c, d)
 
 ################################################################################
 # Difference of each filter
