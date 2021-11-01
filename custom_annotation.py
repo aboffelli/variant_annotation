@@ -129,6 +129,19 @@ to detect strand bias">""", file=out_vcf)
                     alt_motifs_ess = []
                     encode_info = encode_line[index].split('|')[1]
 
+                    # Round encode numbers
+                    if encode_info:
+                        if '&' in encode_info:
+                            encode_info = encode_info.split('&')
+                        else:
+                            encode_info = [encode_info]
+                        for number, protein in enumerate(encode_info):
+                            protein = protein.split(':')
+                            protein[3] = str(round(float(protein[3]), 2))
+                            protein[4] = str(round(float(protein[4]), 2))
+                            encode_info[number] = ':'.join(protein)
+                        encode_info = '&'.join(encode_info)
+
                     # Round PhyloP and GERP to four numbers
                     if csq[12]:
                         csq[12] = str(round(float(csq[12]), 4))
