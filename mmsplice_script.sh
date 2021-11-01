@@ -2,9 +2,9 @@
 
 # Remember to activate conda splice first
 
-for file in Annotation/*.vcf
+for file in *.vcf
 do
-   vep -i $file -o Annotation/mmsplice_$(basename "$file") \
+   vep -i $file -o mmsplice_$(basename "$file") \
    --vcf \
    --format vcf \
    --cache \

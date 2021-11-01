@@ -1,10 +1,10 @@
 #!/bin/bash
 
-mkdir BindingSites
+mkdir EncodeAnnotation
 
 for f in *.vcf;
 do
-    vep -i $f -o BindingSites/binding_sites_$(basename "$f") \
+    vep -i $f -o EncodeAnnotation/encode_$(basename "$f") \
     --vcf \
     --offline \
     --force \
