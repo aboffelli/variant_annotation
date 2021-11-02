@@ -96,11 +96,10 @@ to detect strand bias">""", file=out_vcf)
                     print(line, file=out_vcf)
 
                 elif line.startswith('##INFO=<ID=Encode,Number=.,Type=String,Description="Consequence annotations from '
-                                     'Ensembl VEP. Format: Feature|Consequence|Encode">'):
-                    line = next(vcf).rstrip('">')
-                    # TODO: Format of Encode info
-                    line += ' Format: ProteinName:Strand:">'
-                    # print(line, file=out_vcf)
+                                     'Ensembl VEP. Format: Feature|Encode">'):
+                    line = line.rstrip('Feature|Encode">')
+                    line += 'ProteinName_CellLine:Strand:Log2FoldChange:NegLog10Value">'
+                    print(line, file=out_vcf)
                 else:  # All other header lines.
                     print(line, file=out_vcf)
 
