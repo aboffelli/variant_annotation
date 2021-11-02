@@ -99,7 +99,7 @@ to detect strand bias">""", file=out_vcf)
                                      'Ensembl VEP. Format: Feature|Consequence|Encode">'):
                     line = next(vcf).rstrip('">')
                     # TODO: Format of Encode info
-                    line += ' Format: ProteinName:BedScore:Strand:">'
+                    line += ' Format: ProteinName:Strand:">'
                     # print(line, file=out_vcf)
                 else:  # All other header lines.
                     print(line, file=out_vcf)
@@ -139,6 +139,7 @@ to detect strand bias">""", file=out_vcf)
                             protein = protein.split(':')
                             protein[3] = str(round(float(protein[3]), 2))
                             protein[4] = str(round(float(protein[4]), 2))
+                            protein.pop(1)
                             encode_info[number] = ':'.join(protein)
                         encode_info = '&'.join(encode_info)
 
