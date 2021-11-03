@@ -25,7 +25,7 @@ def reverse_complement(sequence):
 ese_file = '/home/ar7343bo-s/Resources/RESCUE-ESE_hexamers_200703.txt'
 ess_file = '/home/ar7343bo-s/Resources/ESS_hexamers_200824.txt'
 
-files_directory = "Annotation/Edited/EncodeAnnotation/"
+files_directory = "EncodeAnnotation/GeneName/"
 list_of_files = os.listdir(files_directory)
 for file in list_of_files.copy():
     if '.vcf' not in file:
@@ -85,9 +85,9 @@ to detect strand bias">""", file=out_vcf)
                 # Extend CSQ fields
                 elif line.startswith('##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from '
                                      'Ensembl VEP. Format:'):
-                    new_csq_header = 'Existing_variation|AF|EUR_AF|SweGen_AF|gnomAD_AF|gnomAD_NFE_AF|PhyloP|GERP,Feature|' \
-                                     'STRAND|EXON|INTRON|Consequence|Codons|Encode|delta_RSCU|ESEs_REF|ESEs_ALT|ESSs_REF|' \
-                                     'ESSs_ALT'
+                    new_csq_header = 'Existing_variation|AF|EUR_AF|SweGen_AF|gnomAD_AF|gnomAD_NFE_AF|PhyloP|GERP,Gene|' \
+                                     'SYMBOL|Feature|STRAND|EXON|INTRON|Consequence|Codons|Encode|delta_RSCU|ESEs_REF|' \
+                                     'ESEs_ALT|ESSs_REF|ESSs_ALT'
                     line = re.sub(r'(.*Format:).*(">)', r'\g<1> ' + new_csq_header + r'\g<2>', line)
                     print(line, file=out_vcf)
 
@@ -100,6 +100,9 @@ to detect strand bias">""", file=out_vcf)
                     line = line.rstrip('Feature|Encode">')
                     line += 'ProteinName_CellLine:Strand:Log2FoldChange:NegLog10Value">'
                     print(line, file=out_vcf)
+                elif line.startswith('##INFO=<ID=Gene,Number=.,Type=String,Description="Consequence annotations from '
+                                     'Ensembl VEP. Format: Gene|SYMBOL">'):
+                    continue
                 else:  # All other header lines.
                     print(line, file=out_vcf)
 
@@ -111,7 +114,8 @@ to detect strand bias">""", file=out_vcf)
                                          ).group(1)
                 transcripts = re.search(r'CSQ=(\S.+);Encode=', line_info).group(1).split(
                     ',')
-                encode_line = re.search(r'Encode=(.*)', line_info).group(1).split(',')
+                encode_line = re.search(r'Encode=(\S+);Gene=', line_info).group(1).split(',')
+                gene_name = re.search(r'Gene=(\S+)', line_info).group(1).split(',')
 
                 # Start fixed_csq variable
                 fixed_csq = ''
@@ -191,6 +195,8 @@ to detect strand bias">""", file=out_vcf)
                     # Remove fixed info from csq
                     csq.pop(1)
                     csq = csq[0:6]
+                    # Add the gene name and symbol
+                    csq.insert(0, gene_name[index])
                     # Append the new info to csq
                     csq.append(encode_info)
                     csq.append(str(delta_rscu))
