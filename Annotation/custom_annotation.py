@@ -71,7 +71,7 @@ with open(ese_file) as ese, open(ess_file) as ess:
         ess_set.add(line.strip())
 
 for file in list_of_files:
-    with open(files_directory + file) as vcf, open(directory + 'custom_edit_' + file, 'w') as out_vcf:
+    with open(files_directory + file) as vcf, open(directory + 'custom_' + file, 'w') as out_vcf:
         for line in vcf:
             # Header stuff
             if line.startswith("#"):
@@ -112,7 +112,7 @@ to detect strand bias">""", file=out_vcf)
                 line_info = split_line[7]
                 flanking_seq = re.search(r"FS=(\S[A-Z]+\[.+\/.+\][A-Z]+)", line_info
                                          ).group(1)
-                transcripts = re.search(r'CSQ=(\S.+);Encode=', line_info).group(1).split(
+                transcripts = re.search(r'CSQ=(\S+);Encode=', line_info).group(1).split(
                     ',')
                 encode_line = re.search(r'Encode=(\S+);Gene=', line_info).group(1).split(',')
                 gene_name = re.search(r'Gene=(\S+)', line_info).group(1).split(',')
