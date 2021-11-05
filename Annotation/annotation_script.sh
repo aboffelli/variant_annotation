@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# Remember to activate conda e_vep first
+# Script to retrieve the flanking sequences of each variant using VCFTools, and perform the annotation in the vcf files using VEP. Installation of all necessary software is detailed in the README file.
 
-# Get the flanking sequences of the SelectVariants
+# REMEMBER to activate conda env e_vep.
+
+# Get the flanking sequences of the merged files and store in a new directory.
 mkdir FsVcf
 for file in HardFiltering/Merged/*.vcf;
 do
@@ -10,7 +12,9 @@ do
 done
 
 
-# VEP command
+# Annotate the files using VEP and store in a new directory.
+# Custom annotation to retrieve allele frequency from SweGen database.
+# Custom annotation for conservation values from PhyloP and GERP.
 mkdir Annotation
 for file in FsVcf/*.vcf
 do
