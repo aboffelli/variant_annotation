@@ -2,21 +2,26 @@ import re
 import os
 
 
-def check_type(dict_key, consequence):
+def check_type(transcript_line, gene_name, existence):
     global variant_types_known, variant_types_novel
+    global known_gene_dict, novel_gene_dict
     """
     Function to add the the count for the right consequence.
 
     :param consequence: string containing the consequence of the variant
     :return:
     """
-    for key in dict_key.split('/'):
-        if key in consequence:
-            if exist:
-                variant_types_known[dict_key] += 1
-            else:
-                variant_types_novel[dict_key] += 1
-            return True
+    for dict_key in variant_types_known:
+        for key in dict_key.split('/'):
+            if key in transcript_line:
+                if existence:
+                    variant_types_known[dict_key] += 1
+                    known_gene_dict[gene_name][dict_key] += 1
+
+                else:
+                    variant_types_novel[dict_key] += 1
+                    novel_gene_dict[gene_name][dict_key] += 1
+                return True
 
 
 def create_gene_dict(gene_name):
@@ -26,10 +31,16 @@ def create_gene_dict(gene_name):
     :return: 
     """
     global known_gene_dict, novel_gene_dict
-    if gene_name not in known_gene_dict:
-        known_gene_dict[gene_name] = variant_types_known.copy()
-        novel_gene_dict[gene_name] = known_gene_dict.copy()
+    if gene:
+        if gene_name not in known_gene_dict:
+            known_gene_dict[gene_name] = variant_types_known.copy()
+            novel_gene_dict = known_gene_dict.copy()
 
+
+targeted_genes = set()
+with open('/home/ar7343bo-s/whole_gene_list.txt', 'r') as gene_list:
+    for line in gene_list:
+        targeted_genes.add(line.strip())
 
 variant_types_known = {'stop_gained': 0,
                        'frameshift': 0,
@@ -61,28 +72,18 @@ for file in list_of_files.copy():
                         continue
                     csq = re.search(r'CSQ=(\S+)', line).group(1)
                     exist = csq.split('|')[0]
-                    transcripts = csq.split(',')[1:]
-                    for transcript in transcripts:
-                        gene = transcript.split('|')[1]
-                        create_gene_dict(gene)
-                        conseq = transcript.split('|')[6]
-                        for keys in variant_types_known:
-                            if check_type(keys, conseq):
-                                break
-                        else:
-                            if exist:
-                                variant_types_known['other'] += 1
-                            else:
-                                variant_types_novel['other'] += 1
+                    for gene in targeted_genes:
+                        if gene in csq:
+                            create_gene_dict(gene)
+                            check_type(csq, gene, exist)
 
-# TODO: Create table of distribution of genes.
 
 # Create the files
 with open('known_variant_distribution.txt', 'w') as known, \
         open('novel_variant_distribution.txt', 'w') as novel:
     for i in variant_types_known:
-        print(i + '\t' + variant_types_known[i], file=known)
-        print(i + '\t' + variant_types_novel[i], file=novel)
+        print(f'{i}\t{variant_types_known[i]}', file=known)
+        print(f'{i}\t{variant_types_novel[i]}', file=novel)
 
 with open('genes_known_variant_distribution.txt', 'w') as gene_known, \
         open('genes_novel_variant_distribution.txt', 'w') as gene_novel:
