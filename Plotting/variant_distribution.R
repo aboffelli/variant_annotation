@@ -15,7 +15,7 @@ pie_chart <- function(df, name) {
 
 bar_plot <- function(df, name) {
     ggplot(df, aes(x=reorder(V1, -df$V3, sum), y=V3, fill=V2))+
-        geom_bar(stat='identity', position='fill', width=0.5) +
+        geom_bar(stat='identity', position='stack', width=0.5) +
         theme_classic() + 
         labs(title=name) +
         scale_fill_discrete(name='Consequence') +
@@ -26,27 +26,27 @@ bar_plot <- function(df, name) {
 
 
 setwd("~/Box/Notes/Tables")
-known = read.table('known_variant_distribution.txt', sep='\t')
-novel = read.table('novel_variant_distribution.txt', sep='\t')
-known$V1 <- paste(known$V1, ' (', known$V2, ')', sep='')
-novel$V1 <- paste(novel$V1, ' (', novel$V2, ')', sep='')
-
-known_pie <- pie_chart(known, "Known Variants")
-# print(known_pie)
-
-novel_pie <- pie_chart(novel, "Novel Variants")
-
-to_save <- arrangeGrob(known_pie, novel_pie)
-# print(novel_pie)
-ggsave('Plots/pies.pdf', to_save, limitsize=F)
-
-# Version without the introns
-known_pie_no_intron <- pie_chart(known[-10,], 'Known variants')
-novel_pie_no_intron <- pie_chart(novel[-10,], "Novel Variants")
-
-to_save_no_intron <- to_save <- arrangeGrob(known_pie_no_intron, 
-                                            novel_pie_no_intron)
-ggsave('Plots/pies_no_intron.pdf', to_save_no_intron, limitsize=F)
+# known = read.table('known_variant_distribution.txt', sep='\t')
+# novel = read.table('novel_variant_distribution.txt', sep='\t')
+# known$V1 <- paste(known$V1, ' (', known$V2, ')', sep='')
+# novel$V1 <- paste(novel$V1, ' (', novel$V2, ')', sep='')
+# 
+# known_pie <- pie_chart(known, "Known Variants")
+# # print(known_pie)
+# 
+# novel_pie <- pie_chart(novel, "Novel Variants")
+# 
+# to_save <- arrangeGrob(known_pie, novel_pie)
+# # print(novel_pie)
+# ggsave('Plots/pies.pdf', to_save, limitsize=F)
+# 
+# # Version without the introns
+# known_pie_no_intron <- pie_chart(known[-10,], 'Known variants')
+# novel_pie_no_intron <- pie_chart(novel[-10,], "Novel Variants")
+# 
+# to_save_no_intron <- to_save <- arrangeGrob(known_pie_no_intron, 
+#                                             novel_pie_no_intron)
+# ggsave('Plots/pies_no_intron.pdf', to_save_no_intron, limitsize=F)
 
 gene_known <- read.table('genes_known_variant_distribution.txt', sep='\t')
 gene_novel <- read.table('genes_novel_variant_distribution.txt', sep='\t')
@@ -55,8 +55,8 @@ gene_known$V4[gene_known$V1==x$Group.1] <- x$x
 # no_intron <- FALSE
 
 # # Without introns
-# gene_known <- gene_known[!gene_known$V2=='intron',]
-# gene_novel <- gene_novel[!gene_novel$V2=='intron',]
+gene_known <- gene_known[!gene_known$V2=='intron',]
+gene_novel <- gene_novel[!gene_novel$V2=='intron',]
 # no_intron <- TRUE
 
 ## -----------------------------------------------------------------------------
@@ -115,4 +115,4 @@ gene_k_plot <- bar_plot(gene_known, 'Variants by gene (Known variants)')
 gene_n_plot <- bar_plot(gene_novel, 'Variants by gene (Novel variants)')
 
 to_save <- arrangeGrob(gene_k_plot, gene_n_plot)
-ggsave('Plots/variant_distribution_by_gene.pdf', to_save,  limitsize=F)
+ggsave('Plots/count_variant_distribution_by_gene_no_intron.pdf', to_save,  limitsize=F)
