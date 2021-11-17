@@ -29,7 +29,9 @@ conserv_table <- conserv_table[conserv_table$Consequence!='inframe_deletion/inse
 conserv_table[c('Exist', 'Consequence')] <- lapply(
     conserv_table[c('Exist', 'Consequence')], factor)
 
-
+counts <- setNames(data.frame(table(conserv_table$Consequence[conserv_table$Exist=='known'])), c("Cons", "FreqK"))
+counts$FreqN <- data.frame(table(conserv_table$Consequence[conserv_table$Exist=='novel']))[,2]
+counts$Freq <- paste0(counts$FreqK, '/', counts$FreqN)
 
 rscu_hist <- ggplot(data=rscu_table, aes(x=V1, fill=V2)) +
     geom_histogram(alpha=0.3, col='black', bins = 30) +
@@ -50,6 +52,7 @@ conserv_PhyloP <- ggplot(data=conserv_table,
                          aes(y=PhyloP, x=Consequence, fill=Exist)) +
     geom_violin() +
     labs(title = 'PhyloP Distribution') +
+    scale_x_discrete(labels=paste0(counts$Cons, '\n', counts$Freq)) +
     theme_classic()
 ggsave("Plots/conservation_phylop.pdf", plot = conserv_PhyloP, width=35, 
        height = 20, units = 'cm')
@@ -58,8 +61,7 @@ conserv_GERP <- ggplot(data=conserv_table,
                        aes(y=GERP, x=Consequence, fill=Exist)) +
     geom_violin() +
     labs(title = 'GERP Distribution') +
+    scale_x_discrete(labels=paste0(counts$Cons, '\n', counts$Freq)) +
     theme_classic()
 ggsave("Plots/conservation_gerp.pdf", plot=conserv_GERP, width = 35, 
        height = 20, units = 'cm')
-
-    
