@@ -28,8 +28,6 @@ def check_type(transcript_line, gene_name, existence, pos):
     for dict_key in consequence_dict:
         for key in dict_key.split('/'):
             if key in transcript_line:
-                if dict_key == 'inframe_deletion/insertion':
-                    print(pos, transcript_line)
                 gene_consequence[pos] = (gene_name, dict_key, existence)
                 found = True
         if found:
@@ -37,6 +35,22 @@ def check_type(transcript_line, gene_name, existence, pos):
     else:
         gene_consequence[pos] = (gene_name, 'other', existence)
 
+
+def conservation_value(transcript_line, pos, existence):
+    found = False
+    conserv = csq.split(',')[0].split('|')[6:]
+    for dict_key in consequence_dict:
+        for key in dict_key.split('/'):
+            if key in transcript_line:
+                conserv_dict[pos] = (dict_key, conserv[0],
+                                     conserv[1], existence)
+                found = True
+                break
+        if found:
+            break
+    else:
+        conserv_dict[pos] = ('other', conserv[0],
+                             conserv[1], existence)
 
 # Test
 # genes_file = '/Users/student/Documents/whole_gene_list.txt'
@@ -86,18 +100,15 @@ for file in list_of_files:
                     exist = csq.split('|')[0]
                     if 'synonymous_variant' in csq:
                         # Captures digits separated by a dot, the digits are
-                        # after 'synonymous_variant|codon/codon|encode|' and before
-                        # '|'. The '-' sign is optional.
+                        # after 'synonymous_variant|codon/codon|encode|' and
+                        # before '|'. The '-' sign is optional.
                         rscu = re.search(
                             r'synonymous_variant\S*?\|'
                             r'\w+/\w+\|.*?\|(-?\d+\.\d+)\|',
                             csq).group(1)
                         rscu_dict[position] = (rscu, exist)
 
-                    conserv = csq.split(',')[0].split('|')[6:]
-                    # TODO: get the consequence.
-                    # conserv_dict[position] = (dict_key, conserv[0],
-                    #                           conserv[1], exist)
+                    conservation_value(csq, position, exist)
                     for gene in targeted_genes:
                         if gene in csq:
                             check_type(csq, gene, exist, position)
@@ -107,7 +118,6 @@ variant_types_novel = consequence_dict.copy()
 known_gene_dict = {}
 novel_gene_dict = {}
 
-# TODO: getting one less indel that it should be.
 for position in gene_consequence:
     gene = gene_consequence[position][0]
     consequence = gene_consequence[position][1]
@@ -146,17 +156,15 @@ with open('rscu_table.txt', 'w') as rscu_table:
         else:
             print(f'{rscu_dict[i][0]}\tnovel', file=rscu_table)
 
-# with open('conservation_table.txt', 'w') as conserv_table:
-#     print("Gene\tExist\tConsequence\tPhyloP\tGERP", file=conserv_table)
-#     for i in conserv_dict:
-#         if conserv_dict[i][4]:
-#             print(f'{conserv_dict[i][0]}\tknown\t{conserv_dict[i][1]}\t'
-#                   f'{conserv_dict[i][2]}\t{conserv_dict[i][3]}',
-#                   file=conserv_table)
-#         else:
-#             print(f'{conserv_dict[i][0]}\tnovel\t{conserv_dict[i][1]}\t'
-#                   f'{conserv_dict[i][2]}\t{conserv_dict[i][3]}',
-#                   file=conserv_table)
+with open('conservation_table.txt', 'w') as conserv_table:
+    print("Exist\tConsequence\tPhyloP\tGERP", file=conserv_table)
+    for i in conserv_dict:
+        if conserv_dict[i][3]:
+            print(f'known\t{conserv_dict[i][0]}\t{conserv_dict[i][1]}\t'
+                  f'{conserv_dict[i][2]}', file=conserv_table)
+        else:
+            print(f'novel\t{conserv_dict[i][0]}\t{conserv_dict[i][1]}\t'
+                  f'{conserv_dict[i][2]}', file=conserv_table)
 
 # Test
 # for i in variant_types_known:

@@ -56,7 +56,6 @@ known_pie <- pie_chart(known, "Known Variants")
 novel_pie <- pie_chart(novel, "Novel Variants")
 
 to_save <- arrangeGrob(known_pie, novel_pie)
-grid.arrange(known_pie, novel_pie)
 # print(novel_pie)
 ggsave('Plots/pies.pdf', to_save)
 
