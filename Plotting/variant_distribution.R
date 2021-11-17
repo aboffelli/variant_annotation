@@ -38,7 +38,8 @@ bar_plot <- function(df, name, type='stack') {
         theme_classic() + 
         labs(title=name) +
         scale_fill_discrete(name='Consequence') +
-        theme(axis.text.x = element_text(size = 5, angle=90), 
+        theme(text=element_text(size=15),
+            axis.text.x = element_text(size=7, angle=90), 
               legend.key.size = unit(0.3, 'cm')) +
         labs(x= 'Gene', y='Count')
 }

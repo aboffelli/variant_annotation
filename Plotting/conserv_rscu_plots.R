@@ -37,14 +37,16 @@ rscu_hist <- ggplot(data=rscu_table, aes(x=V1, fill=V2)) +
     geom_histogram(alpha=0.3, col='black', bins = 30) +
     geom_freqpoly(aes(col=V2)) +
     labs(x="Delta-RSCU", y='Count') +
-    theme_classic()
+    theme_classic() +
+    theme(text = element_text(size=20))
 ggsave("Plots/rscu_histogram.pdf", plot=rscu_hist, width=25, height = 20, 
        units = 'cm')
 
 rscu_violin <- ggplot(data=rscu_table, aes(y=V1, x=V2, fill=V2)) +
     geom_violin() +
     labs(x='', y='Delta-RSCU') +
-    theme_classic()
+    theme_classic() +
+    theme(text = element_text(size=20))
 ggsave("Plots/rscu_violin.pdf", plot=rscu_violin, width=25, height = 20, 
        units = 'cm')
 
@@ -52,8 +54,10 @@ conserv_PhyloP <- ggplot(data=conserv_table,
                          aes(y=PhyloP, x=Consequence, fill=Exist)) +
     geom_violin() +
     labs(title = 'PhyloP Distribution') +
-    scale_x_discrete(labels=paste0(counts$Cons, '\n', counts$Freq)) +
-    theme_classic()
+    scale_x_discrete(labels=paste0(counts$Cons, '\n', counts$Freq),
+                     guide = guide_axis(n.dodge=2)) +
+    theme_classic() +
+    theme(text = element_text(size=20))
 ggsave("Plots/conservation_phylop.pdf", plot = conserv_PhyloP, width=35, 
        height = 20, units = 'cm')
 
@@ -61,7 +65,9 @@ conserv_GERP <- ggplot(data=conserv_table,
                        aes(y=GERP, x=Consequence, fill=Exist)) +
     geom_violin() +
     labs(title = 'GERP Distribution') +
-    scale_x_discrete(labels=paste0(counts$Cons, '\n', counts$Freq)) +
-    theme_classic()
+    scale_x_discrete(labels=paste0(counts$Cons, '\n', counts$Freq),
+                     guide = guide_axis(n.dodge=2)) +
+    theme_classic() +
+    theme(text = element_text(size=20))
 ggsave("Plots/conservation_gerp.pdf", plot=conserv_GERP, width = 35, 
        height = 20, units = 'cm')
