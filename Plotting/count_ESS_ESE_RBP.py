@@ -124,6 +124,9 @@ for file in list_of_files:
     with open(files_directory + file, 'r') as vcf_file:
         for line in vcf_file:
             if not line.startswith("#"):
+                filt = line.split()[6]
+                if filt != 'PASS':
+                    continue
                 position = line.split()[1]
                 csq = re.search(r'CSQ=(\S+)', line).group(1)
                 existence = csq.split('|')[0]
