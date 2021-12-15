@@ -95,7 +95,9 @@ for file in list_of_files:
                     filt = line.split()[6]
                     if filt != 'PASS':
                         continue
-                    position = line.split()[1]
+                    chrom = line.split('\t')[0]
+                    position = line.split('\t')[1]
+                    position = f'{chrom}:{position}'
                     csq = re.search(r'CSQ=(\S+)', line).group(1)
                     exist = csq.split('|')[0]
                     if 'synonymous_variant' in csq:

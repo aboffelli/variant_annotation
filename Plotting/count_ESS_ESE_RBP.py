@@ -124,10 +124,12 @@ for file in list_of_files:
     with open(files_directory + file, 'r') as vcf_file:
         for line in vcf_file:
             if not line.startswith("#"):
-                filt = line.split()[6]
+                filt = line.split('\t')[6]
                 if filt != 'PASS':
                     continue
-                position = line.split()[1]
+                chrom = line.split('\t')[0]
+                position = line.split('\t')[1]
+                position = f'{chrom}:{position}'
                 csq = re.search(r'CSQ=(\S+)', line).group(1)
                 existence = csq.split('|')[0]
                 if position not in pos_set:
