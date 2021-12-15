@@ -16,16 +16,20 @@
 ##  
 ## -----------------------------------------------------------------------------
 library(ggplot2)
+library(dplyr)
 
 es_plot <- function(table, name) {
-    x <- ggplot(data=table, aes(x=V1, y=V3, fill=V2)) +
+    x <- ggplot(data=table, aes(x=V2, y=V3, fill=V1)) +
         geom_bar(stat='identity') +
         theme_classic() +
-        labs(x='Consequence', y='Count', title=name) +
-        scale_fill_manual(name='Variant type', values=c('gray60', 'gray20'))
+        labs(x='Variant Type', y='Count', title=name) +
+        scale_fill_manual(name='Consequence',
+                          values=c('gray60', 'gray20', 'gray2')) +
+        geom_text(aes(y = label_y, label = Percentage), vjust=1.2, colour = "white", size=4)
+        
+        
     return(x)
 }
-
 
 setwd("C:/Users/Arthu/Box/Notes/Tables/EseEssRbp")
 
@@ -33,9 +37,23 @@ setwd("C:/Users/Arthu/Box/Notes/Tables/EseEssRbp")
 ese_count <- read.table('ese_count.txt', sep = '\t')
 ess_count <- read.table('ess_count.txt', sep = '\t')
 
+ese_count <-  cbind(ese_count, 
+                    Percentage=paste0(round(ese_count$V3/sum(ese_count$V3)*100, 2),'%')) %>%
+    arrange(V2, rev(V1)) %>%
+    group_by(V2) %>%
+    mutate(label_y=cumsum(V3))
+
+ess_count <-  cbind(ess_count, 
+                    Percentage=paste0(round(ess_count$V3/sum(ess_count$V3)*100, 2),'%')) %>%
+    arrange(V2, rev(V1)) %>%
+    group_by(V2) %>%
+    mutate(label_y=cumsum(V3))
+
 rbp_count <- read.table('rbp_count.txt', sep = '\t')
 rbp_protein <- read.table('rbp_protein_frequency.txt', sep = '\t')
 rbp_variant <- read.table('rbp_variant_frequency.txt', sep = '\t')
+
+rbp_protein$V1 <- sapply(strsplit(rbp_protein$V1, split='_', fixed=T), '[[', 1)
 
 ese_count_plot <- es_plot(ese_count, 'ESE Count')
 ggsave('ese_count.pdf', ese_count_plot)
@@ -56,9 +74,10 @@ rbp_protein_plot <- ggplot(data=as.data.frame(table(rbp_protein)),
     geom_bar(stat='identity') +
     scale_x_discrete(guide = guide_axis(n.dodge=2)) +
     theme_classic() +
-    theme(axis.text.x=element_text(angle=90, size=5)) +
+    theme(axis.text.y=element_text(size=5)) +
     scale_fill_manual(name='Variant type', values=c('gray60', 'gray20')) +
-    labs(x='Protein Name', y='Frequency', title= "Frequency of RBP")
+    labs(x='Protein Name', y='Frequency', title= "Frequency of RBP") + 
+    coord_flip()
 ggsave('rbp_protein.pdf', rbp_protein_plot)
 
 rbp_variant <- as.data.frame(table(rbp_variant[,-1]))

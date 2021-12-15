@@ -5,7 +5,8 @@ library(gridExtra)
 
 # Mac
 setwd("~/Box/Notes/Tables")
-
+# Windows
+setwd("C:/Users/Arthu/Box/Notes/Tables")
 
 fail_plot <- function(table, plot_name='') {
     p <- ggplot(data=melt(table), aes(x=variable, y=value)) +
@@ -41,7 +42,8 @@ double_percentage_plot <- function(p_table, plot_name='', cols=c('darkred', 'dar
     p <- ggplot(p_table, aes(x=Group, y=Percentage, fill=Group)) +
         geom_bar(stat='identity', position = 'dodge') +
         scale_fill_manual(values=cols) +
-        geom_text(aes(label=Percentage), position=position_dodge(width=0.9), vjust=-0.25) +
+        geom_text(aes(label=paste0(round(Percentage, 2), '%')), vjust=1.2) +
+        labs(title=plot_name) +
         theme_classic()
     return(p)
 }
@@ -52,7 +54,7 @@ type_table_S4 <- read.table('Sor4/type_comparison.txt', header = T, sep="\t")[,-
 type_comparison <- plot_box(type_table)
 type_comparison_S4 <- plot_box(type_table_S4) 
 # print(type_comparison)
-# ggsave("Plots/type_comparison.pdf", plot=type_comparison)
+ggsave("Plots/type_comparison.png", plot=type_comparison)
 
 
 a_table <- percentage(type_table)
@@ -75,12 +77,12 @@ p_type_comparison_S4 <- ggplot(a_table_S4, aes(x=Group, y=Percentage, fill=Group
 grid.arrange(type_comparison, type_comparison_S4)
 grid.arrange(p_type_comparison, p_type_comparison_S4)
 
-known_on_sum <- double_percentage_plot(percentage(type_table[,1:2]), 'Known On', c("aquamarine", "coral"))
-known_on_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,1:2]), 'Known On', c("aquamarine", "coral"))
+known_on_sum <- double_percentage_plot(percentage(type_table[,1:2]), 'Known On SOR3', c("aquamarine", "coral"))
+known_on_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,1:2]), 'Known On SOR4', c("aquamarine", "coral"))
 known_off_sum <- double_percentage_plot(percentage(type_table[,3:4]), 'Known Off', c("cadetblue1", "lightpink1"))
 known_off_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,3:4]), 'Known Off', c("cadetblue1", "lightpink1"))
-novel_on_sum <- double_percentage_plot(percentage(type_table[,5:6]), "Novel On", c("darkolivegreen1", "lightgoldenrod1"))
-novel_on_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,5:6]), "Novel On", c("darkolivegreen1", "lightgoldenrod1"))
+novel_on_sum <- double_percentage_plot(percentage(type_table[,5:6]), "Novel On SOR3", c("darkolivegreen1", "lightgoldenrod1"))
+novel_on_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,5:6]), "Novel On SOR4", c("darkolivegreen1", "lightgoldenrod1"))
 novel_off_sum <- double_percentage_plot(percentage(type_table[,7:8]), 'Novel Off', c("cornflowerblue", "blueviolet"))
 novel_off_sum_S4 <- double_percentage_plot(percentage(type_table_S4[,7:8]), 'Novel Off', c("cornflowerblue", "blueviolet"))
 
@@ -90,7 +92,8 @@ c <- grid.arrange(novel_on_sum, novel_on_sum_S4)
 d <- grid.arrange(novel_off_sum, novel_off_sum_S4)
 
 grid.arrange(a, b, c, d)
-
+ggsave('known_on_target.png', a, limitsize=F)
+ggsave('novel_on_target.png', c, limitsize=F)
 ################################################################################
 # Difference of each filter
 filters_known_on <- read.table('known_on_target_fail.txt', header = T, sep="\t")[,-1]
@@ -130,7 +133,7 @@ total_sor_plot <- ggplot(data=total_sor, aes(x=V2, y=after_stat(density))) +
     geom_freqpoly(aes(col=V1)) +
     labs(x="SOR Value", y="Density", title = "SOR3 Filter") +
     theme_classic()
-
+ggsave('sor3_distribution.png', total_sor_plot)
 
 # ggplot(data=sor_known_on, aes(x=V2)) +
 #     geom_histogram(fill='gray', alpha=0.3, col='black', bins = n_bin) +

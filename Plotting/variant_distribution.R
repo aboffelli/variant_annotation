@@ -41,11 +41,12 @@ bar_plot <- function(df, name, type='stack') {
         theme(text=element_text(size=15),
             axis.text.x = element_text(size=7, angle=90), 
               legend.key.size = unit(0.3, 'cm')) +
-        labs(x= 'Gene', y='Count')
+        labs(x= 'Gene', y='Percentage')
 }
 
 
-setwd("~/Box/Notes/Tables")
+# setwd("~/Box/Notes/Tables")
+
 known = read.table('known_variant_distribution.txt', sep='\t')
 novel = read.table('novel_variant_distribution.txt', sep='\t')
 known$V1 <- paste(known$V1, ' (', known$V2, ')', sep='')
@@ -66,7 +67,7 @@ novel_pie_no_intron <- pie_chart(novel[-c(10:11),], "Novel Variants")
 
 to_save_no_intron <- to_save <- arrangeGrob(known_pie_no_intron,
                                             novel_pie_no_intron)
-ggsave('Plots/pies_no_intron.pdf', to_save_no_intron)
+ggsave('Plots/pies_no_intron.png', to_save_no_intron, width=17, height=18, unit='cm')
 
 gene_known <- read.table('genes_known_variant_distribution.txt', sep='\t')
 gene_novel <- read.table('genes_novel_variant_distribution.txt', sep='\t')
@@ -142,11 +143,11 @@ p_gene_k_plot_no_intron <- bar_plot(gene_known_no_intron, 'Variants by gene (Kno
 p_gene_n_plot_no_intron <- bar_plot(gene_novel_no_intron, 'Variants by gene (Novel variants) - No introns', 'fill')
 
 to_save <- arrangeGrob(count_gene_k_plot, count_gene_n_plot)
-ggsave('Plots/count_variant_distribution_by_gene.pdf', to_save,  limitsize=F)
+ggsave('Plots/count_variant_distribution_by_gene.png', to_save, width=20, height=18, unit='cm')
 to_save <- arrangeGrob(count_gene_k_plot_no_intron, count_gene_n_plot_no_intron)
-ggsave('Plots/count_variant_distribution_by_gene_no_intron.pdf', to_save,  limitsize=F)
+ggsave('Plots/count_variant_distribution_by_gene_no_intron.png', to_save, width=20, height=18, unit='cm')
 
 to_save <- arrangeGrob(p_gene_k_plot, p_gene_n_plot)
-ggsave('Plots/percentage_variant_distribution_by_gene.pdf', to_save,  limitsize=F)
+ggsave('Plots/percentage_variant_distribution_by_gene.png', to_save, width=20, height=18, unit='cm')
 to_save <- arrangeGrob(p_gene_k_plot_no_intron, p_gene_n_plot_no_intron)
-ggsave('Plots/percentage_variant_distribution_by_gene_no_intron.pdf', to_save,  limitsize=F)
+ggsave('Plots/percentage_variant_distribution_by_gene_no_intron.png', to_save, width=20, height=18, unit='cm')
