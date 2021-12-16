@@ -55,7 +55,6 @@ new_info = '##INFO=<ID=ClinVar,Number=.,Type=String,Description=' \
 
 file_count = 1
 for file in list_of_files:
-    file_start = time.time()
     print(file_count)
     with open(files_directory + file, 'r') as vcf, \
             open('ClinVar/clinvar_' + file, 'w') as outvcf:
@@ -96,5 +95,5 @@ for file in list_of_files:
                     outvcf.write(new_info)
                 outvcf.write(vcf_line)
         file_count += 1
-        print('{:.2f} seconds file'.format(time.time() - file_start))
-print('{:.2f} seconds total'.format(time.time() - start_time))
+
+print('Run time: {:.2f} seconds'.format(time.time() - start_time))
