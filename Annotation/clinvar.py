@@ -96,5 +96,5 @@ for file in list_of_files:
                     outvcf.write(new_info)
                 outvcf.write(vcf_line)
         file_count += 1
-        print('{} seconds file'.format(time.time() - file_start))
-print('{} seconds total'.format(time.time() - start_time))
+        print('{:.2f} seconds file'.format(time.time() - file_start))
+print('{:.2f} seconds total'.format(time.time() - start_time))
