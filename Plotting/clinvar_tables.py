@@ -18,25 +18,37 @@ start_time = time.time()
 
 def is_pathogenic(vcfline, pos):
     if "ClinVar" in vcf_line:
-        clinvar_info = re.search('ClinVar=(\S*)', vcfline).group(1)
+        clinvar_info = re.search(r'ClinVar=(\S*)', vcfline).group(1)
         ref = clinvar_info.split('|')[-2]
         alt = clinvar_info.split('|')[-1]
-        pos = f'{pos}_{ref}_{alt}'
+        gene = clinvar_info.split('|')[4]
+        pos = f'{pos}_{ref}_{alt}_{gene}'
         if 'Pathogenic' in clinvar_info or "Likely_pathogenic" in clinvar_info:
-            patho_count[pos] = 'Pathogenic/Likely pathogenic'
-            pathogenic_samples(sample_name, clinvar_info, pos)
-            most_common_variant(pos)
+            if 'breast' in clinvar_info or 'Breast' in clinvar_info:
+                patho_count[pos] = 'Pathogenic/Likely pathogenic breast cancer'
+                pathogenic_samples(sample_name, clinvar_info, pos)
+                most_common_variant(pos)
+            else:
+                patho_count[pos] = 'Pathogenic/Likely pathogenic ' \
+                                   'not breast cancer'
+
         else:
             patho_count[pos] = 'Non pathogenic'
         type_of_clinical_significance(clinvar_info, pos)
 
     else:
         patho_count[pos] = 'No ClinVar info'
+        if 'synonymous_variant' in vcf_line:
+            if pos not in synonymous_variants:
+                synonymous_variants[pos] = 'No ClinVar info'
 
 
 def type_of_clinical_significance(clinvar, pos):
     clinvar_info = clinvar.split('|')
     type_dict[pos] = clinvar_info[6]
+    if 'synonymous_variant' in vcf_line:
+        if pos not in synonymous_variants:
+            synonymous_variants[pos] = clinvar_info[6]
 
 
 def pathogenic_samples(sample, clinvar, pos):
@@ -57,7 +69,7 @@ patho_count = {}
 type_dict = {}
 samples_pathogenic = {}
 most_common = {}
-
+synonymous_variants = {}
 
 files_directory = "ClinVar/"
 list_of_files = os.listdir(files_directory)
@@ -79,6 +91,7 @@ for file in list_of_files:
                 position = vcf_line.split('\t')[1]
                 position = f'{chrom}:{position}'
                 is_pathogenic(vcf_line, position)
+
         file_count += 1
 
 # Print the tables
@@ -99,8 +112,8 @@ with open(out_dir + 'samples_pathogenic.txt', 'w') as outfile:
         for key in samples_pathogenic[sample]:
             info = key.split(':')
             chrom = info[0]
-            pos, ref, alt = info[1].split('_')
-            print(f'{sample}\t{chrom}\t{pos}\t{ref}\t{alt}\t'
+            pos, ref, alt, gene = info[1].split('_')
+            print(f'{sample}\t{chrom}\t{pos}\t{ref}\t{alt}\t{gene}\t'
                   f'{samples_pathogenic[sample][key]}',
                   file=outfile)
 
@@ -108,5 +121,11 @@ with open(out_dir + 'samples_pathogenic.txt', 'w') as outfile:
 with open(out_dir + 'most_common_pathogenic_var.txt', 'w') as outfile:
     for key in most_common:
         print(f'{key}\t{most_common[key]}', file=outfile)
+
+
+# Synonymous variants
+with open(out_dir+'synonymous_variants.txt', 'w') as outfile:
+    for key in synonymous_variants:
+        print(f'{key}\t{synonymous_variants[key]}', file=outfile)
 
 print('Run time: {:.2f} seconds'.format(time.time() - start_time))

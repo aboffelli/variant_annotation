@@ -20,7 +20,7 @@ library(ggplot2)
 library(gridExtra)
 options(scipen = 100)
 
-setwd("~/Box/Notes/Tables")
+setwd("C:/Users/Arthu/Box/Notes/Tables/RscuConserv")
 
 rscu_table <- read.table('rscu_table.txt', sep='\t')
 rscu_table$V2 <- factor(rscu_table$V2)
