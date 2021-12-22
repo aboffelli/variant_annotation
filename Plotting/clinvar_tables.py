@@ -3,7 +3,7 @@
 """
 Title:
 
-Description:
+Description: Script that creates tables with ClinVar information to plot.
 
 Created on: 2021-12-16
 Author: Arthur Boffelli Castro
@@ -24,13 +24,15 @@ def is_pathogenic(vcfline, pos):
         gene = clinvar_info.split('|')[4]
         pos = f'{pos}_{ref}_{alt}_{gene}'
         if 'Pathogenic' in clinvar_info or "Likely_pathogenic" in clinvar_info:
-            if 'breast' in clinvar_info or 'Breast' in clinvar_info:
-                patho_count[pos] = 'Pathogenic/Likely pathogenic breast cancer'
+            if 'Glycogen_storage_disease_due_to_glucose-6-' \
+               'phosphatase_deficiency_type_IA' not in clinvar_info:
+                patho_count[pos] = 'Pathogenic/Likely pathogenic related to ' \
+                                   'breast cancer'
                 pathogenic_samples(sample_name, clinvar_info, pos)
                 most_common_variant(pos)
             else:
                 patho_count[pos] = 'Pathogenic/Likely pathogenic ' \
-                                   'not breast cancer'
+                                   'not related to breast cancer'
 
         else:
             patho_count[pos] = 'Non pathogenic'
