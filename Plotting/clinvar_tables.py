@@ -83,7 +83,7 @@ file_count = 1
 for file in list_of_files:
     print(file_count)
     sample_name = re.search(r'filtered_(\S+)_VEP', file).group(1)
-    with open(files_directory + file, 'r')as vcf_file:
+    with open(files_directory + file, 'r') as vcf_file:
         for vcf_line in vcf_file:
             if not vcf_line.startswith('#'):
                 filt = vcf_line.split('\t')[6]
