@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Title: clinvar.py
+Title: Custom ClinVar Annotation.
 
 Description: Script that annotates the clinical information of the variant
     based on the file variant_summary.txt obtained from ClinVar at
@@ -9,33 +9,32 @@ Description: Script that annotates the clinical information of the variant
 
 Created on: 2021-12-10
 Author: Arthur Boffelli Castro
+
+GitHub: https://github.com/aboffelli/
 """
 import os
 import time
 
 start_time = time.time()
 
-# Prepare the VCF files that will be run
+# Put all files in a list, removing anything that is not a vcf file.
 files_directory = r"CustomAnnotation/"
 list_of_files = os.listdir(files_directory)
 for file in list_of_files.copy():
     if '.vcf' not in file:
-        # Remove any file that is not a vcf from the file list.
         list_of_files.remove(file)
 
-# Create a dictionary for the ClinVar file info.
+# Initiate a dictionary to store the ClinVar file info.
 clinvar_dict = {}
 with open(r'/home/ar7343bo-s/variant_summary_GRCh37.txt',
           'r') as variant:
     for line in variant:
-        # # Get only the pathogenic/likely pathogenic variants.
-        # if "pathogenic" in vcf_line.lower():
-        # Use the chromosome number as keys and a nested dictionary.
+        # Use the chromosome numbers as keys for a nested dictionary.
         chrom = line.split('\t')[18]
         position = line.split('\t')[31]
         if chrom not in clinvar_dict:
             clinvar_dict[chrom] = {}
-        # Add the position as keys in the nested dictionary, and line as a set.
+        # Add the line as a set to each position.
         if position not in clinvar_dict[chrom]:
             clinvar_dict[chrom][position] = {line}
         else:
@@ -53,13 +52,15 @@ new_info = '##INFO=<ID=ClinVar,Number=.,Type=String,Description=' \
            'TestedInGTR|OtherIDs|SubmitterCategories|VariationID|' \
            'PositionVCF|ReferenceAlleleVCF|AlternateAlleleVCF">\n'
 
+# File count that will be printed in the screen.
 file_count = 1
 for file in list_of_files:
     print(file_count)
+
     with open(files_directory + file, 'r') as vcf, \
             open('ClinVar/clinvar_' + file, 'w') as outvcf:
         for vcf_line in vcf:
-            # Variant lines
+            # Non header lines
             if not vcf_line.startswith("#"):
                 vcf_line = vcf_line.split('\t')
                 # Get chromosome number, position and ref and alt bases.
@@ -68,8 +69,8 @@ for file in list_of_files:
                 ref = vcf_line[3]
                 alt = vcf_line[4]
 
-                # The search in the ClinVar file is based on the position, ref
-                # and alt bases.
+                # The search in the ClinVar file is based on the position,
+                # reference, and altered bases.
                 search = f'{pos}\t{ref}\t{alt}'
                 # Search only in the respective chromosome set.
                 if pos in clinvar_dict[chrom]:
@@ -80,20 +81,27 @@ for file in list_of_files:
                             clinvar_line = clinvar_line.replace('|', ',')
                             clinvar_line = clinvar_line.replace(' ', '_')
                             clinvar_line = '|'.join(clinvar_line.split('\t'))
-                            # Add the clinvar line to the info section of the vcf
-                            # line
+
+                            # Add the clinvar line to the info section of the
+                            # vcf line
                             vcf_line[7] = vcf_line[7] + ';ClinVar=' + \
                                           clinvar_line.strip()
-                            # print('\t'.join(line))
+
                             break
+                # Write the line to the file.
                 outvcf.write('\t'.join(vcf_line))
+
             # Header lines
             else:
                 if vcf_line.startswith('#CHROM'):
                     # Add the new line in the header, just before the last
                     # header line.
                     outvcf.write(new_info)
+                # Write the last line of the header.
                 outvcf.write(vcf_line)
+
+        # Raise the file count
         file_count += 1
 
+# Print the run time in the screen.
 print('Run time: {:.2f} seconds'.format(time.time() - start_time))

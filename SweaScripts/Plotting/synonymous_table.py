@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Title:
+Title: Synonymous variants' visualization table.
 
 Description: Script to generate a table containing relevant information
 to explore the synonymous variants in samples that do not have any pathogenic
@@ -9,6 +9,8 @@ variant reported.
 
 Created on: 2022-01-19
 Author: Arthur Boffelli Castro
+
+GitHub: https://github.com/aboffelli/
 """
 
 import os
