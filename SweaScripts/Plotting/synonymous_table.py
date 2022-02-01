@@ -10,7 +10,7 @@ variant reported.
 Created on: 2022-01-19
 Author: Arthur Boffelli Castro
 
-GitHub: https://github.com/aboffelli/
+GitHub: https://github.com/aboffelli/variant_annotation
 """
 
 import os
@@ -44,9 +44,13 @@ def synonymous_parser(vcfline):
 
         # The delta rscu and the encode are the same for all transcripts, so
         # they can be retrieved from the first transcript.
-        first_transcript = csq.group(2).split('|')
-        rscu = first_transcript[9]
-        encode_info = first_transcript[8].split('&')
+        # TODO: Fix the first transcript to be synonymous transcript (regex)
+        synonymous_transcript = re.search(r'synonymous_variant\S*?\|-?\d.\d+\|',
+                                          csq.group(2)).group(0).split('|')
+
+        codon = synonymous_transcript[1]
+        rscu = synonymous_transcript[3]
+        encode_info = synonymous_transcript[2].split('&')
         encode = []
         # Since the encode information can contain more than one protein, in a
         # loop, get all proteins in a list and join them together.
@@ -58,7 +62,7 @@ def synonymous_parser(vcfline):
         # loop through all transcripts and retrieve the gene name and join it
         # after.
         all_transcripts = csq.group(0).strip(';ClinVar\t').split(',')[1:]
-        gene = [first_transcript[1]]
+        gene = [synonymous_transcript[1]]
 
         # The ese and ess can be present or not depending on the transcript,
         # however, they will be the same for all transcripts. So. after we
@@ -79,6 +83,9 @@ def synonymous_parser(vcfline):
         if ese_ess:
             ese, ess = ese_ess
         # Join the genes.
+        for gene_symbol in gene.copy():
+            if gene_symbol not in seq_genes:
+                gene.remove(gene_symbol)
         gene = ';'.join(gene)
 
         # Retrieve the allele frequency to calculate later, assign the value to
@@ -91,7 +98,7 @@ def synonymous_parser(vcfline):
         else:  # 1/1 two alleles
             allele = 1
         swea_af[position][sample_name] = allele
-        return known, gene, af, phylop, gerp, rscu, ese, ess, encode
+        return known, gene, codon, af, phylop, gerp, rscu, ese, ess, encode
 
 
 def ese_ess_parser(transcript):
@@ -153,6 +160,11 @@ def ese_ess_parser(transcript):
         return ese, ess
 
 
+seq_genes = set()
+with open('../whole_gene_list.txt', 'r') as gene_list:
+    for line in gene_list:
+        seq_genes.add(line.strip())
+
 # Put all files in a list, removing anything that is not a vcf file.
 files_directory = "SamplesWithoutPathogenic/"
 list_of_files = os.listdir(files_directory)
@@ -213,14 +225,14 @@ for position in swea_af:
 # Save all the information in a text file tab delimited.
 with open('synonymous_table.txt', 'w') as outfile:
     # Add the header
-    print("Variant\tDbSNP ID\tGene\tAF SweGen\tAF SWEA\tPhyloP\t"
-          "GERP\tRSCU\tESE\tESS\tRBP",
+    print("Variant\tDbSNP_ID\tGene\tCodon_(ref/alt)\tAF_SweGen\tAF_SWEA\t"
+          "PhyloP\tGERP\tdeltaRSCU\tESE\tESS\tRBP",
           file=outfile)
 
     for variant in synonymous_table:
         # Insert the SWEA allele frequency in the result list.
         result = list(synonymous_table[variant])
-        result.insert(3, swea_af_perc[variant])
+        result.insert(4, swea_af_perc[variant])
 
         # Change any empty space to NA
         for j in range(len(result)):
