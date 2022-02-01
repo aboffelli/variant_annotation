@@ -4,9 +4,11 @@
 ##
 ## Date created: 2022-01-21
 ##
-## GitHub: https://github.com/aboffelli/
+## GitHub: https://github.com/aboffelli/variant_annotation
 ##
-## Description: Script to plot the synonymous variants for exploration.
+## Description: Script to plot an interactive complex heatmap containing the 
+##  synonymous variants from samples that do not have a pathogenic variant 
+##  reported in ClinVar.
 ##    
 ##  
 ## -----------------------------------------------------------------------------
@@ -19,54 +21,79 @@
 library(ggplot2)
 library(plotly)
 library(tidyverse)
+library(iheatmapr)
 options(scipen = 100)
 
-setwd("~/Box/Arthur/SweaSynVar")
+setwd("~/Box/Notes/Tables/SweaSynVar")
 
-synonymous_table <- read.table('synonymous_table.txt', header=T, sep='\t')
+synonymous <- read.table('synonymous_table.txt', header=T, sep='\t')
+synonymous <- synonymous[order(synonymous$Gene),]
 
-af.swegen <- 0.1
-af.swea <- 0.9
-rscu <- 0
-phylop <- 2
-gerp <- 0
+synonymous_table <- synonymous
+synonymous_table[!is.na(synonymous_table$RBP),]$RBP<- 'Presence'
 
 
-synonymous_table[!is.na(synonymous_table$AF.SweGen) & synonymous_table$AF.SweGen > af.swegen,]$AF.SweGen <- NA
-synonymous_table[!is.na(synonymous_table$AF.SweGen) & synonymous_table$AF.SweGen < af.swegen,]$AF.SweGen <- 'AF SweGen'
 
-synonymous_table[!is.na(synonymous_table$AF.SWEA) & synonymous_table$AF.SWEA > af.swea,]$AF.SWEA <- NA
-synonymous_table[!is.na(synonymous_table$AF.SWEA) & synonymous_table$AF.SWEA < af.swea,]$AF.SWEA <- 'AF SWEA'
+main.heatmap <-synonymous_table[,5:6] %>% 
+    separate(AF_SWEA, c('AF_SWEA', NA), "([(])")
+main.heatmap$AF_SWEA <- as.numeric(main.heatmap$AF_SWEA)
 
-synonymous_table[!is.na(synonymous_table$RSCU) & synonymous_table$RSCU > rscu,]$RSCU <- NA
-synonymous_table[!is.na(synonymous_table$RSCU) & synonymous_table$RSCU < rscu,]$RSCU <- 'RSCU'
+swea_presence <- separate(data=synonymous_table, 
+                                 col=AF_SWEA, 
+                                 into= c(NA, 'AF_SWEA'), 
+                                 sep="([(])")$AF_SWEA
 
-synonymous_table[!is.na(synonymous_table$PhyloP) & synonymous_table$PhyloP < phylop,]$PhyloP <- NA
-synonymous_table[!is.na(synonymous_table$PhyloP) & synonymous_table$PhyloP > phylop,]$PhyloP <- 'PhyloP'
+rownames(main.heatmap) <- paste(synonymous_table$Variant, 
+                                paste('Codon (ref/alt):', 
+                                      synonymous_table$Codon_.ref.alt.), 
+                                paste('dbSNP ID:', synonymous_table$DbSNP_ID),
+                                paste('SWEA presence:', 
+                                      substr(swea_presence, 1, 
+                                             nchar(swea_presence)-1)),
+                                paste('RBP proteins:', synonymous$RBP),
+                                sep='<br>')
 
-synonymous_table[!is.na(synonymous_table$GERP) & synonymous_table$GERP <= gerp,]$GERP <- NA
-synonymous_table[!is.na(synonymous_table$GERP) & synonymous_table$GERP > gerp,]$GERP <- 'GERP'
 
-synonymous_table[!is.na(synonymous_table$ESE),]$ESE <- 'ESE'
-synonymous_table[!is.na(synonymous_table$ESS),]$ESS <- 'ESS'
+main.heatmap <- as.matrix(main.heatmap)
+ese_ess <- synonymous_table[,10:12]
+phylop <- as.matrix(synonymous_table[,7])
+colnames(phylop) <- 'PhyloP'
+gerp <- as.matrix(synonymous_table[,8])
+colnames(gerp) <- 'GERP'
+rscu <- as.matrix(synonymous_table[,9])
+colnames(rscu) <- 'deltaRSCU'
 
-synonymous_table[!is.na(synonymous_table$RBP),]$RBP<- 'RBP'
+genes <- synonymous_table[,3]
+genes[is.na(genes)] <- 'Not a targeted gene'
 
-synonymous_table_filtered <- synonymous_table[,-2]
+the_plot <- main_heatmap(main.heatmap, name='Allele frequency', 
+             colors= c('lightblue', 'darkblue'), tooltip=setup_tooltip_options(prepend_row='Variant: ')) %>%
+    add_col_labels() %>% 
+    add_row_annotation(data.frame('ESE' = ese_ess$ESE,
+                       'ESS' = ese_ess$ESS,
+                       'RBP' = ese_ess$RBP
+                       ),
+                       colors = list('ESE' = c('yellow',
+                                               'orange',
+                                               'black'),
+                                     'ESS' = c('yellow',
+                                               'orange',
+                                               'black'),
+                                     'RBP' = c('forestgreen', 'white'))) %>%
+    add_row_groups(genes, title= 'Gene', side='left', show_colorbar=F) %>% 
+    add_main_heatmap(phylop, name='PhyloP', colors='RdBu', 
+                     tooltip=setup_tooltip_options(prepend_row='Variant: ')) %>%
+    add_col_labels() %>% 
+    add_main_heatmap(gerp, name='GERP', colors='RdBu', 
+                     tooltip=setup_tooltip_options(prepend_row='Variant: ')) %>%
+    add_col_labels() %>% 
+    add_main_heatmap(rscu, name='deltaRSCU', colors='RdBu', 
+                     tooltip=setup_tooltip_options(prepend_row='Variant: ')) %>% 
+    add_col_labels()
 
-synonymous_to_plot <- data.frame()
+the_plot
 
-for (i in 1:nrow(synonymous_table_filtered)) { 
-    for (j in 3:ncol(synonymous_table_filtered)) {
-        synonymous_to_plot <- rbind(synonymous_to_plot, c(synonymous_table_filtered[i,1], synonymous_table_filtered[i,j], synonymous_table_filtered[i,2], unite(synonymous_table_filtered[i,], "text", colnames(synonymous_table_filtered[i,3:ncol(synonymous_table_filtered)]), sep=',', na.rm=T)$text))
-}}
-colnames(synonymous_to_plot) <- c('Variant', 'Type', "Gene", "Text")
-synonymous_to_plot <- synonymous_to_plot[!is.na(synonymous_to_plot$Type),]
-synonymous_to_plot <- drop_na(synonymous_to_plot)
-
-plot <- ggplot(data=synonymous_to_plot, aes(y=Variant, x=Type, fill='', text= Text, gene=Gene)) +
-    geom_tile() +
-    theme(legend.position='none')
-
-ggplotly(plot, tooltip = c('y','gene', 'text')) %>% layout(hovermode="y unified")
-
+the_plot %>% 
+    save_iheatmap("synonymous_heatmap_int.html")
+the_plot %>% 
+    save_iheatmap('~/Box/Arthur/SweaSynVar/synonymous_heatmap_int.html')
