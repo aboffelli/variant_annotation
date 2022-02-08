@@ -10,7 +10,7 @@ Description: Script that annotates the clinical information of the variant
 Created on: 2021-12-10
 Author: Arthur Boffelli Castro
 
-GitHub: https://github.com/aboffelli/
+GitHub: https://github.com/aboffelli/variant_annotation
 """
 import os
 import time

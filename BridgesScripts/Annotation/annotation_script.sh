@@ -7,6 +7,9 @@
 # Annotate the files using VEP and store in a new directory.
 # Custom annotation to retrieve allele frequency from SweGen database.
 # Custom annotation for conservation values from PhyloP and GERP.
+
+# Create a new directory to store the annotated files and copy the directory
+# structure from Data/.
 mkdir Annotation
 rsync -av -f"+ */" -f"- *" Data/ Annotation/
 

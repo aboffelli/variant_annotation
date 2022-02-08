@@ -13,11 +13,14 @@ Description: The script annotates the presence of Exonic Splicing
 Created on: 2021-12-10
 Author: Arthur Boffelli Castro
 
-GitHub: https://github.com/aboffelli/
+GitHub: https://github.com/aboffelli/variant_annotation
 """
 
 import re
 import os
+import time
+
+start_time = time.time()
 
 
 def reverse_complement(sequence):
@@ -258,3 +261,5 @@ for file in list_of_files:
                                        transcripts, line_info)
                 line = '\t'.join(split_line)
                 print(line, file=out_vcf)
+
+print('Run time: {:.2f} seconds'.format(time.time() - start_time))
