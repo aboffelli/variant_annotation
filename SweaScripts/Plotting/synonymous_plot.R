@@ -101,9 +101,6 @@ the_plot <- main_heatmap(main.heatmap, name='Allele frequency',
                                                'black'),
                                      'RBP' = c('forestgreen', 'white'))) %>%
     
-    # Add the Gene annotation in the left side
-    add_row_groups(genes, title= 'Gene', side='left', show_colorbar=F) %>% 
-    
     # Add the PhyloP heatmap and the column labels
     add_main_heatmap(phylop, name='PhyloP', colors='RdBu', 
                      tooltip=setup_tooltip_options(prepend_row='Variant: ')) %>%
@@ -117,6 +114,8 @@ the_plot <- main_heatmap(main.heatmap, name='Allele frequency',
     # Add the RSCU heatmap and the column label
     add_main_heatmap(rscu, name='deltaRSCU', colors='RdBu', 
                      tooltip=setup_tooltip_options(prepend_row='Variant: ')) %>% 
+    # Add the Gene annotation in the left side
+    add_row_groups(genes, title= 'Gene', side='left', show_colorbar=F) %>%
     add_col_labels()
 
 # Show the plot in the Viewer tab
@@ -125,6 +124,9 @@ the_plot
 # Save the HTML plot.
 the_plot %>% 
     save_iheatmap("synonymous_heatmap_int.html")
+
+the_plot %>% 
+    save_iheatmap("~/Box/Arthur/SweaSynVar/synonymous_heatmap_int.html")
 
 # To save as a static plot the package webshot is necessary, after installing 
 # it, just change the extension of the file name to pdf/png/jpeg.
