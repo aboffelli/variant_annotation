@@ -1,10 +1,16 @@
 #!/bin/bash
 
-mkdir EncodeAnnotation
+# Script to add the Encode annotation of overlapping RNA binding protein binding sites on the vcfs.
 
-for f in *.vcf;
+# Create a new directory to store the annotated files and copy the directory
+# structure from Annotation/.
+mkdir EncodeAnnotation
+rsync -av -f"+ */" -f"- *" Annotation/ EncodeAnnotation/
+
+find Annotation/Control/ -type f | while read file;
 do
-    vep -i $f -o EncodeAnnotation/encode_$(basename "$f") \
+    path_name=${file%/*}
+    vep -i $file -o EncodeAnnotation/${path_name#Annotation/}/encode_$(basename "$file") \
     --vcf \
     --offline \
     --force \
