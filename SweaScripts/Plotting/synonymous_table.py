@@ -43,10 +43,16 @@ def synonymous_parser(vcfline):
         gerp = fixed_csq[7]
 
         # The delta rscu and the encode are the same for all transcripts, so
-        # they can be retrieved from the first transcript.
-        # TODO: Fix the first transcript to be synonymous transcript (regex)
+        # they can be retrieved from the transcript that has the synonymous
+        # variant.
         synonymous_transcript = re.search(r'synonymous_variant\S*?\|-?\d.\d+\|',
                                           csq.group(2)).group(0).split('|')
+
+        # Remove variants with NMD transcript.
+        if 'NMD_transcript_variant' in synonymous_transcript[0]:
+            return False
+        if 'missense_variant|' in csq.group(0):
+            return False
 
         codon = synonymous_transcript[1]
         rscu = synonymous_transcript[3]
@@ -59,10 +65,12 @@ def synonymous_parser(vcfline):
         encode = ';'.join(encode)
 
         # It is possible that the same variant affects different genes, so we
-        # loop through all transcripts and retrieve the gene name and join it
-        # after.
+        # loop through all transcripts and retrieve all the gene names and
+        # consequence to join it after.
         all_transcripts = csq.group(0).strip(';ClinVar\t').split(',')[1:]
-        gene = [synonymous_transcript[1]]
+
+        genes = set()
+        consequence = set()
 
         # The ese and ess can be present or not depending on the transcript,
         # however, they will be the same for all transcripts. So. after we
@@ -73,8 +81,8 @@ def synonymous_parser(vcfline):
 
         for transcript in all_transcripts:
             transcript = transcript.split('|')
-            if transcript[1] not in gene:
-                gene.append(transcript[1])
+            genes.add(transcript[1])
+            consequence.add(transcript[6])
             if not ese_ess:
                 # There is a function to evaluate the ese and ess.
                 ese_ess = ese_ess_parser(transcript)
@@ -82,11 +90,12 @@ def synonymous_parser(vcfline):
         # If any ese or ess was found separate them into different variables.
         if ese_ess:
             ese, ess = ese_ess
-        # Join the genes.
-        for gene_symbol in gene.copy():
-            if gene_symbol not in seq_genes:
-                gene.remove(gene_symbol)
+
+        # Remove the genes that are not in the screening genes list by
+        # intersecting the sets.
+        gene = genes & seq_genes
         gene = ';'.join(gene)
+        consequence = ';'.join(sorted(list(consequence)))
 
         # Retrieve the allele frequency to calculate later, assign the value to
         # the dictionary.
@@ -98,7 +107,12 @@ def synonymous_parser(vcfline):
         else:  # 1/1 two alleles
             allele = 1
         swea_af[position][sample_name] = allele
-        return known, gene, codon, af, phylop, gerp, rscu, ese, ess, encode
+
+        if position not in qc:
+            qc[position] = consequence
+
+        return known, gene, codon, af, phylop, gerp, rscu, ese, ess, encode, \
+               consequence
 
 
 def ese_ess_parser(transcript):
@@ -177,6 +191,9 @@ synonymous_table = {}
 swea_af = {}
 swea_af_perc = {}
 
+# QC checking
+qc = {}
+
 # File count that will be printed in the screen.
 file_count = 1
 for file in list_of_files:
@@ -226,7 +243,7 @@ for position in swea_af:
 with open('synonymous_table.txt', 'w') as outfile:
     # Add the header
     print("Variant\tDbSNP_ID\tGene\tCodon_(ref/alt)\tAF_SweGen\tAF_SWEA\t"
-          "PhyloP\tGERP\tdeltaRSCU\tESE\tESS\tRBP",
+          "PhyloP\tGERP\tdeltaRSCU\tESE\tESS\tRBP\tConsequence",
           file=outfile)
 
     for variant in synonymous_table:
@@ -242,6 +259,10 @@ with open('synonymous_table.txt', 'w') as outfile:
         # Insert the line into the file.
         print("{}\t{}".format(variant, '\t'.join(result)),
               file=outfile)
+
+with open('qc_file.txt', 'w') as qc_file:
+    for pos in qc:
+        print(pos, qc[pos], file=qc_file)
 
 # Print the run time.
 print('Run time: {:.2f} seconds'.format(time.time() - start_time))
