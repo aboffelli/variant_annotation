@@ -74,8 +74,10 @@ def variant_parser(vcfline):
         swea_af[position][sample_name] = allele
 
         pathogenicity = ''
-        if 'Pathogenic' in vcfline or "Likely_pathogenic" in vcfline:
-            pathogenicity = 'Pathogenic/Likely_pathogenic'
+
+        if "ClinVar" in vcf_line:
+            clinvar_info = re.search(r'ClinVar=(\S*)', vcfline).group(1)
+            pathogenicity = clinvar_info.split('|')[6]
 
         return known, gene, af, phylop, gerp, consequence, pathogenicity
 
