@@ -7,7 +7,7 @@
 mkdir EncodeAnnotation
 rsync -av -f"+ */" -f"- *" Annotation/ EncodeAnnotation/
 
-find Annotation/Control/ -type f | while read file;
+find Annotation/ -type f | while read file;
 do
     path_name=${file%/*}
     vep -i $file -o EncodeAnnotation/${path_name#Annotation/}/encode_$(basename "$file") \

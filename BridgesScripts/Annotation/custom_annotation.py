@@ -15,20 +15,15 @@ def reverse_complement(sequence):
     return rev_comp
 
 
-# if platform.system() == 'Windows':
-#     test_file = 'C:/Users/Arthu/Box/test.vcf'
-#     ese_file = 'C:/Users/Arthu/Box/RESCUE-ESE_hexamers_200703.txt'
-#     ess_file = 'C:/Users/Arthu/Box/ESS_hexamers_200824.txt'
-#
-# else:
-#     test_file = '/Users/student/Box/test.vcf'
+test_dir = "/Users/student/Box/Notes/TestData/Bridges/"
+
 ese_file = '/home/ar7343bo-s/Resources/RESCUE-ESE_hexamers_200703.txt'
 ess_file = '/home/ar7343bo-s/Resources/ESS_hexamers_200824.txt'
 
-files_directory = "EncodeAnnotation/GeneName/"
+files_directory = test_dir
 list_of_files = os.listdir(files_directory)
 for file in list_of_files.copy():
-    if '.vcf' not in file:
+    if 'encode_vep' not in file:
         list_of_files.remove(file)
 
 directory = 'CustomAnnotation/'
@@ -71,60 +66,65 @@ with open(ese_file) as ese, open(ess_file) as ess:
         ess_set.add(line.strip())
 
 for file in list_of_files:
-    with open(files_directory + file) as vcf, open(directory + 'custom_' + file, 'w') as out_vcf:
+    with open(files_directory + file) as vcf, open(directory + 'custom_' + file,
+                                                   'w') as out_vcf:
         for line in vcf:
-            # Header stuff
+            # Update the header lines.
             if line.startswith("#"):
                 line = line.strip()
-                # Add FS info line
-                if line.startswith('##INFO=<ID=ExcessHet'):
-                    print(line, file=out_vcf)
-                    print("""##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test \
-to detect strand bias">""", file=out_vcf)
 
-                # Extend CSQ fields
-                elif line.startswith('##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from '
-                                     'Ensembl VEP. Format:'):
-                    new_csq_header = 'Existing_variation|AF|EUR_AF|SweGen_AF|gnomAD_AF|gnomAD_NFE_AF|PhyloP|GERP,Gene|' \
-                                     'SYMBOL|Feature|STRAND|EXON|INTRON|Consequence|Codons|Encode|delta_RSCU|ESEs_REF|' \
-                                     'ESEs_ALT|ESSs_REF|ESSs_ALT'
-                    line = re.sub(r'(.*Format:).*(">)', r'\g<1> ' + new_csq_header + r'\g<2>', line)
-                    print(line, file=out_vcf)
+                # Update the CSQ fields to the new format.
+                if line.startswith('##INFO=<ID=CSQ,Number=.,Type=String,'
+                                   'Description="Consequence annotations from '
+                                   'Ensembl VEP. Format:'):
+                    new_csq_header = 'Existing_variation|AF|EUR_AF|SweGen_AF|' \
+                                     'gnomAD_AF|gnomAD_NFE_AF|PhyloP|GERP,' \
+                                     'Gene|SYMBOL|Feature|STRAND|EXON|INTRON|' \
+                                     'Consequence|Codons|Encode|delta_RSCU|' \
+                                     'ESEs_REF|ESEs_ALT|ESSs_REF|ESSs_ALT'
 
-                elif line.startswith('##INFO=<ID=FS,Number=1,Type=String,Description="Flanking sequence">'):
-                    line = re.sub("ID=FS", "ID=FSEQ", line)
-                    print(line, file=out_vcf)
+                    # Change the line using regex substitution.
+                    line = re.sub(r'(.*Format:).*(">)', r'\g<1> ' +
+                                  new_csq_header + r'\g<2>', line)
+                    # print(line, file=out_vcf)
 
-                elif line.startswith('##INFO=<ID=Encode,Number=.,Type=String,Description="Consequence annotations from '
-                                     'Ensembl VEP. Format: Feature|Encode">'):
+                # Update the Encode info line.
+                elif line.startswith('##INFO=<ID=Encode,Number=.,Type=String,'
+                                     'Description="Consequence annotations from'
+                                     ' Ensembl VEP. Format: Feature|Encode">'):
                     line = line.rstrip('Feature|Encode">')
-                    line += 'ProteinName_CellLine:Strand:Log2FoldChange:NegLog10Value">'
-                    print(line, file=out_vcf)
-                elif line.startswith('##INFO=<ID=Gene,Number=.,Type=String,Description="Consequence annotations from '
-                                     'Ensembl VEP. Format: Gene|SYMBOL">'):
-                    continue
-                else:  # All other header lines.
-                    print(line, file=out_vcf)
+                    line += 'ProteinName_CellLine:Strand:Log2FoldChange:' \
+                            'NegLog10Value">'
+                    # print(line, file=out_vcf)
 
-            # Non-header stuff
+                else:  # All other header lines.
+                    # print(line, file=out_vcf)
+                    pass
+            # Variants lines.
             else:
                 split_line = line.split()
                 line_info = split_line[7]
-                flanking_seq = re.search(r"FS=(\S[A-Z]+\[.+\/.+\][A-Z]+)", line_info
-                                         ).group(1)
-                transcripts = re.search(r'CSQ=(\S+);Encode=', line_info).group(1).split(
+                # Retrieve the flanking sequence. TODO: change to the bridges format of flanking sequence
+                flanking_seq = re.search(r"FS=(\S[A-Z]+\[.+\/.+\][A-Z]+)",
+                                         line_info).group(1)
+                # Retrieve the transcripts between CSQ and Encode.
+                transcripts = re.search(r'CSQ=(\S+);Encode=', line_info
+                                        ).group(1).split(
                     ',')
-                encode_line = re.search(r'Encode=(\S+);Gene=', line_info).group(1).split(',')
-                gene_name = re.search(r'Gene=(\S+)', line_info).group(1).split(',')
+                # Retrieve the Encode info.
+                encode_line = re.search(r'Encode=(\S+)', line_info
+                                        ).group(1).split(',')
 
-                # Start fixed_csq variable
+                # Start fixed_csq variable that will be composed by the
+                # information that does not change for the transcripts
+                # (redundant CSQ).
                 fixed_csq = ''
                 for index, transcript in enumerate(transcripts.copy()):
                     csq = transcript.split('|')
-                    strand = csq[2]
-                    exon = csq[3]
-                    consequence = csq[5]
-                    codon = csq[6].upper()
+                    strand = csq[4]
+                    exon = csq[5]
+                    consequence = csq[7]
+                    codon = csq[8].upper()
                     delta_rscu = ''
                     ref_motifs_ese = []
                     ref_motifs_ess = []
@@ -134,26 +134,36 @@ to detect strand bias">""", file=out_vcf)
 
                     # Round encode numbers
                     if encode_info:
+                        # If encode has more than one protein, split it.
                         if '&' in encode_info:
                             encode_info = encode_info.split('&')
+                        # If only one protein, transform it into a list item.
                         else:
                             encode_info = [encode_info]
+                        # Loop through the encode_info list.
                         for number, protein in enumerate(encode_info):
                             protein = protein.split(':')
+                            # Round the numbers
                             protein[3] = str(round(float(protein[3]), 2))
                             protein[4] = str(round(float(protein[4]), 2))
+                            # Remove something TODO
                             protein.pop(1)
+                            # Join the list in the right index.
                             encode_info[number] = ':'.join(protein)
+                        # Join all the proteins again
                         encode_info = '&'.join(encode_info)
 
                     # Round PhyloP and GERP to four numbers
-                    if csq[12]:
-                        csq[12] = str(round(float(csq[12]), 4))
-                    if csq[13]:
-                        csq[13] = str(round(float(csq[13]), 4))
+                    phylop = csq[14]
+                    gerp = csq[15]
+                    # Change the csq items to join them in the end.
+                    if phylop:
+                        csq[14] = str(round(float(phylop), 4))
+                    if gerp:
+                        csq[15] = str(round(float(gerp), 4))
                     if not fixed_csq:
-                        fixed_csq = [csq[1]]
-                        for inf in csq[7:]:
+                        fixed_csq = [csq[3]]
+                        for inf in csq[9:]:
                             fixed_csq.append(inf)
 
                     # Calculate the deltaRSCU for synonymous variants:
@@ -163,8 +173,9 @@ to detect strand bias">""", file=out_vcf)
                         delta_rscu = round(rscu_dictionary[alt_codon]
                                            - rscu_dictionary[ref_codon], 2)
 
+                    # TODO: Use the new flanking regions format.
                     # Check for ESE and ESS in exonic SNV variants
-                    if exon and (len(split_line[3])+len(split_line[4]) == 2):
+                    if exon and (len(split_line[3]) + len(split_line[4]) == 2):
                         # get surrounding sequence
                         seq = re.search(r'(\w{5})\[(\S+)\/(\S+)\](\w{5})',
                                         flanking_seq)
@@ -178,7 +189,7 @@ to detect strand bias">""", file=out_vcf)
 
                         # get hexamers matches for ref ESE and ESS
                         for i in range(len(ref_seq) - 5):
-                            hexamer = ref_seq[i:i+6]
+                            hexamer = ref_seq[i:i + 6]
                             if hexamer in ese_set:
                                 ref_motifs_ese.append(hexamer)
                             if hexamer in ess_set:
@@ -186,17 +197,16 @@ to detect strand bias">""", file=out_vcf)
 
                         # get hexamers matches for alt ESE and ESS
                         for i in range(len(alt_seq) - 5):
-                            hexamer = alt_seq[i:i+6]
+                            hexamer = alt_seq[i:i + 6]
                             if hexamer in ese_set:
                                 alt_motifs_ese.append(hexamer)
                             if hexamer in ess_set:
                                 alt_motifs_ess.append(hexamer)
 
                     # Remove fixed info from csq
-                    csq.pop(1)
-                    csq = csq[0:6]
-                    # Add the gene name and symbol
-                    csq.insert(0, gene_name[index])
+                    csq.pop(3)
+                    csq = csq[0:8]
+
                     # Append the new info to csq
                     csq.append(encode_info)
                     csq.append(str(delta_rscu))
@@ -210,9 +220,9 @@ to detect strand bias">""", file=out_vcf)
                 # Join the lines together again
                 fixed_csq = '|'.join(fixed_csq)
                 transcripts = ','.join(transcripts)
-                # Change FS= to FSEQ= in the flanking sequence
-                line_info = re.sub(r'FS(=\D)', r'FSEQ\g<1>', line_info)
-                split_line[7] = re.sub(r'(CSQ=)\S.+', r'\g<1>' + fixed_csq + ',' +
-                                       transcripts, line_info)
+
+                split_line[7] = re.sub(r'(CSQ=)\S.+', r'\g<1>' + fixed_csq +
+                                       ',' + transcripts, line_info)
                 line = '\t'.join(split_line)
-                print(line, file=out_vcf)
+                print(line)
+                # print(line, file=out_vcf)
