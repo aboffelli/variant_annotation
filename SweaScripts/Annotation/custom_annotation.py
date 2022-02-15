@@ -179,19 +179,27 @@ for file in list_of_files:
 
                     # Round encode numbers
                     if encode_info:
+                        # If encode has more than one protein, split it.
                         if '&' in encode_info:
                             encode_info = encode_info.split('&')
+                        # If only one protein, transform it into a list item.
                         else:
                             encode_info = [encode_info]
+                        # Loop through the encode_info list.
                         for number, protein in enumerate(encode_info):
                             protein = protein.split(':')
+                            # Round the numbers
                             protein[3] = str(round(float(protein[3]), 2))
                             protein[4] = str(round(float(protein[4]), 2))
+                            # Remove the number 1000.
                             protein.pop(1)
+                            # Join the list in the right index.
                             encode_info[number] = ':'.join(protein)
+                        # Join all the proteins again
                         encode_info = '&'.join(encode_info)
 
                     # Round PhyloP and GERP to four numbers
+                    # Change the csq items to join them in the end.
                     if csq[12]:
                         csq[12] = str(round(float(csq[12]), 4))
                     if csq[13]:
@@ -210,18 +218,23 @@ for file in list_of_files:
 
                     # Check for ESE and ESS in exonic SNV variants
                     if exon and (len(split_line[3])+len(split_line[4]) == 2):
-                        # get surrounding sequence
+                        # Retrieve the surrounding sequence of the variant. As
+                        # we want to check hexamers, we only need 5 more bases
+                        # on each side of the variant to have hexamers that
+                        # include the variant.
                         seq = re.search(r'(\w{5})\[(\S+)\/(\S+)\](\w{5})',
                                         flanking_seq)
                         ref_seq = ''.join(seq.group(1, 2, 4))
                         alt_seq = ''.join(seq.group(1, 3, 4))
 
-                        # Get reverse complement if reverse strand
+                        # Check if the variant is located in the reverse strand
+                        # and get the reverse complement.
                         if strand == '-1':
                             ref_seq = reverse_complement(ref_seq)
                             alt_seq = reverse_complement(alt_seq)
 
-                        # get hexamers matches for ref ESE and ESS
+                        # Check all possible hexamers in the reference sequence
+                        # and if they are present in the the ESE and ESS sets.
                         for i in range(len(ref_seq) - 5):
                             hexamer = ref_seq[i:i+6]
                             if hexamer in ese_set:
@@ -229,7 +242,8 @@ for file in list_of_files:
                             if hexamer in ess_set:
                                 ref_motifs_ess.append(hexamer)
 
-                        # get hexamers matches for alt ESE and ESS
+                        # Check all possible hexamers in the altered sequence
+                        # and if they are present in the the ESE and ESS sets.
                         for i in range(len(alt_seq) - 5):
                             hexamer = alt_seq[i:i+6]
                             if hexamer in ese_set:
@@ -237,12 +251,12 @@ for file in list_of_files:
                             if hexamer in ess_set:
                                 alt_motifs_ess.append(hexamer)
 
-                    # Remove fixed info from csq
+                    # Remove fixed info from the original csq.
                     csq.pop(1)
                     csq = csq[0:6]
                     # Add the gene name and symbol
                     csq.insert(0, gene_name[index])
-                    # Append the new info to csq
+                    # Append the new info to csq and join it together again.
                     csq.append(encode_info)
                     csq.append(str(delta_rscu))
                     csq.append(';'.join(ref_motifs_ese))
@@ -250,16 +264,20 @@ for file in list_of_files:
                     csq.append(';'.join(ref_motifs_ess))
                     csq.append(';'.join(alt_motifs_ess))
                     csq = '|'.join(csq)
+                    # Put the new csq in the right transcript
                     transcripts[index] = csq
 
-                # Join the lines together again
+                # Join the fixed csq and transcripts together again
                 fixed_csq = '|'.join(fixed_csq)
                 transcripts = ','.join(transcripts)
+
                 # Change FS= to FSEQ= in the flanking sequence
                 line_info = re.sub(r'FS(=\D)', r'FSEQ\g<1>', line_info)
                 split_line[7] = re.sub(r'(CSQ=)\S.+', r'\g<1>' + fixed_csq + ',' +
                                        transcripts, line_info)
+                # Join the line
                 line = '\t'.join(split_line)
+                # Print the line in the file
                 print(line, file=out_vcf)
 
 print('Run time: {:.2f} seconds'.format(time.time() - start_time))
