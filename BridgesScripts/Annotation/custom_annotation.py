@@ -180,19 +180,23 @@ for file in list_of_files:
                         delta_rscu = round(rscu_dictionary[alt_codon]
                                            - rscu_dictionary[ref_codon], 2)
 
-                    # TODO: Use the new flanking regions format.
                     # Check for ESE and ESS in exonic SNV variants
                     if exon and (len(split_line[3]) + len(split_line[4]) == 2):
-                        # get surrounding sequence
+                        # Retrieve the surrounding sequence of the variant. As
+                        # we want to check hexamers, we only need 5 more bases
+                        # on each side of the variant to have hexamers that
+                        # include the variant.
                         ref_seq = left_seq[-5:] + ref_base + right_seq[:5]
                         alt_seq = left_seq[-5:] + alt_base + right_seq[:5]
 
-                        # Get reverse complement if reverse strand
+                        # Check if the variant is located in the reverse strand
+                        # and get the reverse complement.
                         if strand == '-1':
                             ref_seq = reverse_complement(ref_seq)
                             alt_seq = reverse_complement(alt_seq)
 
-                        # get hexamers matches for ref ESE and ESS
+                        # Check all possible hexamers in the reference sequence
+                        # and if they are present in the the ESE and ESS sets.
                         for i in range(len(ref_seq) - 5):
                             hexamer = ref_seq[i:i + 6]
                             if hexamer in ese_set:
@@ -200,7 +204,8 @@ for file in list_of_files:
                             if hexamer in ess_set:
                                 ref_motifs_ess.append(hexamer)
 
-                        # get hexamers matches for alt ESE and ESS
+                        # Check all possible hexamers in the altered sequence
+                        # and if they are present in the the ESE and ESS sets.
                         for i in range(len(alt_seq) - 5):
                             hexamer = alt_seq[i:i + 6]
                             if hexamer in ese_set:
@@ -208,11 +213,11 @@ for file in list_of_files:
                             if hexamer in ess_set:
                                 alt_motifs_ess.append(hexamer)
 
-                    # Remove fixed info from csq
+                    # Remove fixed info from the original csq.
                     csq.pop(3)
                     csq = csq[0:8]
 
-                    # Append the new info to csq
+                    # Append the new info to csq and join it together again.
                     csq.append(encode_info)
                     csq.append(str(delta_rscu))
                     csq.append(';'.join(ref_motifs_ese))
@@ -220,16 +225,20 @@ for file in list_of_files:
                     csq.append(';'.join(ref_motifs_ess))
                     csq.append(';'.join(alt_motifs_ess))
                     csq = '|'.join(csq)
+                    # Put the new csq in the right transcript
                     transcripts[index] = csq
 
-                # Join the lines together again
+                # Join the fixed csq and transcripts together again
                 fixed_csq = '|'.join(fixed_csq)
                 transcripts = ','.join(transcripts)
 
+                # Replace the old CSQ by the new CSQ in info column of the line.
                 split_line[7] = re.sub(r'(CSQ=)\S.+', r'\g<1>' + fixed_csq +
                                        ',' + transcripts, line_info)
 
+                # Join the line
                 line = '\t'.join(split_line)
+                # Print the line in the file
                 print(line, file=out_vcf)
     file_count += 1
 
