@@ -1,6 +1,9 @@
 import re
-import platform
+import glob
 import os
+import time
+
+start_time = time.time()
 
 
 def reverse_complement(sequence):
@@ -15,20 +18,16 @@ def reverse_complement(sequence):
     return rev_comp
 
 
-test_dir = "/Users/student/Box/Notes/TestData/Bridges/"
+# test_dir = "/Users/student/Box/Notes/TestData/Bridges/"
 
 ese_file = '/home/ar7343bo-s/Resources/RESCUE-ESE_hexamers_200703.txt'
 ess_file = '/home/ar7343bo-s/Resources/ESS_hexamers_200824.txt'
 
-files_directory = test_dir
-list_of_files = os.listdir(files_directory)
+list_of_files = glob.glob("EncodeAnnotation/Control/**/*.vcf",
+                          recursive=True)
 for file in list_of_files.copy():
-    if 'encode_vep' not in file:
+    if '/encode_vep' not in file:
         list_of_files.remove(file)
-
-directory = 'CustomAnnotation/'
-if not os.path.exists(directory):
-    os.makedirs(directory)
 
 # Complement dictionary
 complement_dictionary = {'A': 'T', 'C': 'G',
@@ -65,9 +64,13 @@ with open(ese_file) as ese, open(ess_file) as ess:
     for line in ess:
         ess_set.add(line.strip())
 
+file_count = 1
 for file in list_of_files:
-    with open(files_directory + file) as vcf, open(directory + 'custom_' + file,
-                                                   'w') as out_vcf:
+    print(file_count)
+    new_file = re.sub(r'EncodeAnnotation(\S*/)(encode)',
+                      r'CustomAnnotation\1custom_\2', file)
+
+    with open(file, 'r') as vcf, open(new_file, 'w') as out_vcf:
         for line in vcf:
             # Update the header lines.
             if line.startswith("#"):
@@ -86,7 +89,7 @@ for file in list_of_files:
                     # Change the line using regex substitution.
                     line = re.sub(r'(.*Format:).*(">)', r'\g<1> ' +
                                   new_csq_header + r'\g<2>', line)
-                    # print(line, file=out_vcf)
+                    print(line, file=out_vcf)
 
                 # Update the Encode info line.
                 elif line.startswith('##INFO=<ID=Encode,Number=.,Type=String,'
@@ -95,22 +98,26 @@ for file in list_of_files:
                     line = line.rstrip('Feature|Encode">')
                     line += 'ProteinName_CellLine:Strand:Log2FoldChange:' \
                             'NegLog10Value">'
-                    # print(line, file=out_vcf)
+                    print(line, file=out_vcf)
 
                 else:  # All other header lines.
-                    # print(line, file=out_vcf)
-                    pass
+                    print(line, file=out_vcf)
+
             # Variants lines.
             else:
-                split_line = line.split()
+                split_line = line.split('\t')
+                ref_base = split_line[3]
+                alt_base = split_line[4]
                 line_info = split_line[7]
-                # Retrieve the flanking sequence. TODO: change to the bridges format of flanking sequence
-                flanking_seq = re.search(r"FS=(\S[A-Z]+\[.+\/.+\][A-Z]+)",
-                                         line_info).group(1)
+
+                # Retrieve the flanking sequence.
+                left_seq = re.search(r"LSEQ=(\w+)", line_info).group(1)
+                right_seq = re.search(r"RSEQ=(\w+)", line_info).group(1)
+
                 # Retrieve the transcripts between CSQ and Encode.
                 transcripts = re.search(r'CSQ=(\S+);Encode=', line_info
-                                        ).group(1).split(
-                    ',')
+                                        ).group(1).split(',')
+
                 # Retrieve the Encode info.
                 encode_line = re.search(r'Encode=(\S+)', line_info
                                         ).group(1).split(',')
@@ -146,7 +153,7 @@ for file in list_of_files:
                             # Round the numbers
                             protein[3] = str(round(float(protein[3]), 2))
                             protein[4] = str(round(float(protein[4]), 2))
-                            # Remove something TODO
+                            # Remove the number 1000.
                             protein.pop(1)
                             # Join the list in the right index.
                             encode_info[number] = ':'.join(protein)
@@ -177,10 +184,8 @@ for file in list_of_files:
                     # Check for ESE and ESS in exonic SNV variants
                     if exon and (len(split_line[3]) + len(split_line[4]) == 2):
                         # get surrounding sequence
-                        seq = re.search(r'(\w{5})\[(\S+)\/(\S+)\](\w{5})',
-                                        flanking_seq)
-                        ref_seq = ''.join(seq.group(1, 2, 4))
-                        alt_seq = ''.join(seq.group(1, 3, 4))
+                        ref_seq = left_seq[-5:] + ref_base + right_seq[:5]
+                        alt_seq = left_seq[-5:] + alt_base + right_seq[:5]
 
                         # Get reverse complement if reverse strand
                         if strand == '-1':
@@ -223,6 +228,10 @@ for file in list_of_files:
 
                 split_line[7] = re.sub(r'(CSQ=)\S.+', r'\g<1>' + fixed_csq +
                                        ',' + transcripts, line_info)
+
                 line = '\t'.join(split_line)
-                print(line)
-                # print(line, file=out_vcf)
+                print(line, file=out_vcf)
+    file_count += 1
+
+# Print the run time.
+print('Run time: {:.2f} seconds'.format(time.time() - start_time))
