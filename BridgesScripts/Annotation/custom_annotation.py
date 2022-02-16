@@ -1,6 +1,23 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Title: Custom VCF annotation for BRIDGES files.
+
+Description: The script annotates the presence of Exonic Splicing
+    Enhancer/Silencer (ESE/ESS) hexamers overlapped by the variant, the
+    difference in the values of the Relative Synonymous Codon Usage (RSCU)
+    between the reference codon and altered codon, and changes the format of
+    the lines to remove redundant information of CSQ.
+    The header is also updated.
+
+Created on: 2021-12-10
+Author: Arthur Boffelli Castro
+
+GitHub: https://github.com/aboffelli/variant_annotation
+"""
+
 import re
 import glob
-import os
 import time
 
 start_time = time.time()

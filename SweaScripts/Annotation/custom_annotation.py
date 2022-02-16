@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Title: Custom VCF annotation.
+Title: Custom VCF annotation for SWEA files.
 
 Description: The script annotates the presence of Exonic Splicing
     Enhancer/Silencer (ESE/ESS) hexamers overlapped by the variant, the
