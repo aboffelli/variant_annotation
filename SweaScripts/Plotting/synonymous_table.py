@@ -83,6 +83,8 @@ def synonymous_parser(vcfline):
             transcript = transcript.split('|')
             genes.add(transcript[1])
             consequence.add(transcript[6])
+            if 'synonymous' in transcript[6]:
+                mmsplice = transcript[14]
             if not ese_ess:
                 # There is a function to evaluate the ese and ess.
                 ese_ess = ese_ess_parser(transcript)
@@ -111,8 +113,8 @@ def synonymous_parser(vcfline):
         if position not in qc:
             qc[position] = consequence
 
-        return known, gene, codon, af, phylop, gerp, rscu, ese, ess, encode, \
-               consequence
+        return known, gene, codon, af, phylop, gerp, rscu, mmsplice, ese, ess, \
+            encode, consequence
 
 
 def ese_ess_parser(transcript):
@@ -180,7 +182,7 @@ with open('../whole_gene_list.txt', 'r') as gene_list:
         seq_genes.add(line.strip())
 
 # Put all files in a list, removing anything that is not a vcf file.
-files_directory = "SamplesWithoutPathogenic/"
+files_directory = "MMSamplesWithoutPathogenic/"
 list_of_files = os.listdir(files_directory)
 for file in list_of_files.copy():
     if '.vcf' not in file:
@@ -242,12 +244,13 @@ for position in swea_af:
 # Save all the information in a text file tab delimited.
 with open('synonymous_table.txt', 'w') as outfile:
     # Add the header
-    print("Variant\tDbSNP_ID\tGene\tCodon_(ref/alt)\tAF_SweGen\tAF_SWEA\t"
-          "PhyloP\tGERP\tdeltaRSCU\tESE\tESS\tRBP\tConsequence",
+    print("#Variant\tDbSNP_ID\tGene\tCodon_(ref/alt)\tAF_SweGen\tAF_SWEA\t"
+          "PhyloP\tGERP\tdeltaRSCU\tdeltaLogitPsi\tESE\tESS\tRBP\tConsequence",
           file=outfile)
 
     for variant in synonymous_table:
-        # Insert the SWEA allele frequency in the result list.
+        # Insert the SWEA allele frequency in the result list. One minus the
+        # header position since we don't have the position in this list.
         result = list(synonymous_table[variant])
         result.insert(4, swea_af_perc[variant])
 
