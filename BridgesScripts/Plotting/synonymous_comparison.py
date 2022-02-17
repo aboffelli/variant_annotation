@@ -29,8 +29,7 @@ start_time = time.time()
 #         list_of_files.remove(file)
 
 # Original files
-list_of_files = glob.glob("Annotation/Control/**/*.vcf",
-                          recursive=True)
+list_of_files = glob.glob("Annotation/**/*.vcf", recursive=True)
 for file in list_of_files.copy():
     if '/vep' not in file:
         list_of_files.remove(file)
@@ -45,13 +44,15 @@ with open('/home/ar7343bo-s/SWEA/synonymous_table.txt', 'r') as syn_table:
         position = split_line[0]
         swea_synonymous[position] = split_line
 
-bridges_af = {}
-bridges_af_perc = {}
+bridges_af = {'Control': {}, 'Samples': {}}
+bridges_af_perc = {'Control': {}, 'Samples': {}}
 
 file_count = 1
 for file in list_of_files:
     print(file_count)
-
+    new_file_name = "Annotation/Control/" + file.split('/')[-1]
+    file_type = new_file_name.split('/')[1]
+    print(file_type)
     sample_name = file.split('/')[-1].lstrip('encode_vep_')
     print(sample_name)
     with open(file, 'r') as vcf:
@@ -70,44 +71,58 @@ for file in list_of_files:
 
                 if position in swea_synonymous:
                     allele = vcfline.split('\t')[-1][0:3]
-                    if position not in bridges_af:
-                        bridges_af[position] = {}
+                    if position not in bridges_af[file_type]:
+                        bridges_af[file_type][position] = {}
                     if allele == '0/1':  # only one allele
                         allele = 0.5
                     else:  # 1/1 two alleles
                         allele = 1
-                    bridges_af[position][sample_name] = allele
+                    bridges_af[file_type][position][sample_name] = allele
 
     file_count += 1
     
-for position in bridges_af:
-    bridges_af_perc[position] = 0
+for dict_type in bridges_af:
+    for position in bridges_af[dict_type]:
+        bridges_af_perc[dict_type][position] = 0
     # Sum all the frequencies from the samples.
-    for sample in bridges_af[position]:
-        bridges_af_perc[position] += bridges_af[position][sample]
+        for sample in bridges_af[dict_type][position]:
+            bridges_af_perc[dict_type][position] += \
+                bridges_af[dict_type][position][sample]
 
-    # Divide the sum by the number of samples and store it in the dictionary.
-    bridges_af_perc[position] = \
-        f'{bridges_af_perc[position] / len(bridges_af[position]):.3f} ' \
-        f'({len(bridges_af[position])} samples)'
+        # Divide the sum by the number of samples and store it in the dictionary.
+        bridges_af_perc[dict_type][position] = \
+            f'{bridges_af_perc[dict_type][position] / len(bridges_af[dict_type][position]):.3f} ' \
+            f'({len(bridges_af[dict_type][position])} samples)'
 
 
 new_header = header.split('\t')
-new_header.insert(6, 'AF_BRIDGES')
-new_header = '#' + '\t'.join(new_header).strip()
+new_header.insert(6, 'AF_BRIDGES_Control')
+new_header.insert(7, 'AF_BRIDGES_Samples')
+new_header = '\t'.join(new_header).strip()
 
 with open('new_synonymous_table.txt', 'w') as outfile:
     print(new_header, file=outfile)
-    for position in swea_synonymous:
-        if position in bridges_af_perc:
-            new_line = swea_synonymous[position]
-            new_line.insert(6, bridges_af_perc[position])
-
+    for dict_type in bridges_af_perc:
+        if dict_type == 'Control':
+            insert_position = 6
         else:
-            new_line = swea_synonymous[position]
-            new_line.insert(6, 'NA')
-        print('\t'.join(new_line), file=outfile)
+            insert_position = 7
+        for position in swea_synonymous:
+            if position in bridges_af_perc[dict_type]:
+                new_line = swea_synonymous[position]
+                new_line.insert(insert_position,
+                                bridges_af_perc[dict_type][position])
+
+            else:
+                new_line = swea_synonymous[position]
+                new_line.insert(insert_position, 'NA')
+
+            if dict_type == 'Samples':
+                print('\t'.join(new_line), file=outfile)
 
 with open('bridges_gene_list.txt', 'w') as gene_list:
     for gene_name in sorted(list(unique_genes)):
         print(gene_name, file=gene_list)
+        pass
+# Print the run time.
+print('Run time: {:.2f} seconds'.format(time.time() - start_time))
