@@ -122,6 +122,7 @@ for file in list_of_files:
 
             # Variants lines.
             else:
+                line = line.strip()
                 split_line = line.split('\t')
                 ref_base = split_line[3]
                 alt_base = split_line[4]
