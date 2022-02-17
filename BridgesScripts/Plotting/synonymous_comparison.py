@@ -50,8 +50,7 @@ bridges_af_perc = {'Control': {}, 'Samples': {}}
 file_count = 1
 for file in list_of_files:
     print(file_count)
-    new_file_name = "Annotation/Control/" + file.split('/')[-1]
-    file_type = new_file_name.split('/')[1]
+    file_type = file.split('/')[1]
     print(file_type)
     sample_name = file.split('/')[-1].lstrip('encode_vep_')
     print(sample_name)
