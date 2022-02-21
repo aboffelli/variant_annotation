@@ -20,18 +20,21 @@ import time
 start_time = time.time()
 
 
-def synonymous_parser(vcfline):
+def synonymous_parser(vcfline, posit):
     """
     Function that identifies a synonymous variant and retrieves the information
         needed for the table.
 
     :param vcfline: line from the vcf file
+    :param posit: string containing the chromosome and position of the
+                     variant.
     :return: tuple containing the DbSNP ID, gene affected, the allele
         frequency, conservation value PhyloP, conservation value GERP,
         delta rscu, ese, ess, and encode information.
     """
     # Check if variant is synonymous.
     if 'synonymous_variant' in vcfline:
+
         # Isolate only the annotation info, using regex.
         csq = re.search(r'CSQ=(\S+?),(\S+?)(;ClinVar|\s)', vcfline)
         # The fixed csq contains information that are the same for all
@@ -42,79 +45,107 @@ def synonymous_parser(vcfline):
         phylop = fixed_csq[6]
         gerp = fixed_csq[7]
 
-        # The delta rscu and the encode are the same for all transcripts, so
-        # they can be retrieved from the transcript that has the synonymous
-        # variant.
-        synonymous_transcript = re.search(r'synonymous_variant\S*?\|-?\d.\d+\|',
-                                          csq.group(2)).group(0).split('|')
-
-        # Remove variants with NMD transcript.
-        if 'NMD_transcript_variant' in synonymous_transcript[0]:
-            return False
-        if 'missense_variant|' in csq.group(0):
-            return False
-
-        codon = synonymous_transcript[1]
-        rscu = synonymous_transcript[3]
-        encode_info = synonymous_transcript[2].split('&')
-        encode = []
-        # Since the encode information can contain more than one protein, in a
-        # loop, get all proteins in a list and join them together.
-        for prot in encode_info:
-            encode.append(prot.split(':')[0])
-        encode = ';'.join(encode)
-
-        # It is possible that the same variant affects different genes, so we
-        # loop through all transcripts and retrieve all the gene names and
-        # consequence to join it after.
-        all_transcripts = csq.group(0).strip(';ClinVar\t').split(',')[1:]
-
-        genes = set()
-        consequence = set()
-
-        # The ese and ess can be present or not depending on the transcript,
-        # however, they will be the same for all transcripts. So. after we
-        # retrieve a value we can stop looking for it.
-        ese = ''
-        ess = ''
-        ese_ess = ''
-
-        for transcript in all_transcripts:
-            transcript = transcript.split('|')
-            genes.add(transcript[1])
-            consequence.add(transcript[6])
-            if 'synonymous' in transcript[6]:
-                mmsplice = transcript[14]
-            if not ese_ess:
-                # There is a function to evaluate the ese and ess.
-                ese_ess = ese_ess_parser(transcript)
-
-        # If any ese or ess was found separate them into different variables.
-        if ese_ess:
-            ese, ess = ese_ess
-
-        # Remove the genes that are not in the screening genes list by
-        # intersecting the sets.
-        gene = genes & seq_genes
-        gene = ';'.join(gene)
-        consequence = ';'.join(sorted(list(consequence)))
-
         # Retrieve the allele frequency to calculate later, assign the value to
         # the dictionary.
         allele = vcfline.split('\t')[-1][0:3]
-        if position not in swea_af:
-            swea_af[position] = {}
-        if allele == '0/1':  # only one allele
-            allele = 0.5
-        else:  # 1/1 two alleles
-            allele = 1
-        swea_af[position][sample_name] = allele
+        # If to alternate alleles, set a loop to use the two bases.
+        if '2' in allele:
+            loops = 2
+        else:
+            loops = 1
 
-        if position not in qc:
-            qc[position] = consequence
+        # The delta rscu and the encode are the same for all transcripts, so
+        # they can be retrieved from the transcript that has the synonymous
+        # variant.
+        original_posit = posit
+        for i in range(loops):
+            if '2' in allele:
+                # Reset the position for the second iteration
+                posit = original_posit
 
-        return known, gene, codon, af, phylop, gerp, rscu, mmsplice, ese, ess, \
-            encode, consequence
+                # Add the base to the end of the position, so we can
+                # differentiate the variants
+                base = vcfline.split('\t')[4].split(',')[i]
+                posit += base
+
+            synonymous_transcript = re.findall(
+                r'synonymous_variant\S*?\|-?\d.\d+\|', csq.group(2))
+
+            # Remove variants with NMD transcript.
+            if 'NMD_transcript_variant' in synonymous_transcript[i]:
+                return False
+            if 'missense_variant|' in csq.group(0):
+                return False
+            synonymous_transcript = synonymous_transcript[i].split('|')
+            codon = synonymous_transcript[1]
+            rscu = synonymous_transcript[3]
+            encode_info = synonymous_transcript[2].split('&')
+            encode = []
+            # Since the encode information can contain more than one protein, in
+            # a
+            # loop, get all proteins in a list and join them together.
+            for prot in encode_info:
+                encode.append(prot.split(':')[0])
+            encode = ';'.join(encode)
+
+            # It is possible that the same variant affects different genes, so
+            # we loop through all transcripts and retrieve all the gene names
+            # and consequence to join it after.
+            all_transcripts = csq.group(0).strip(';ClinVar\t').split(',')[1:]
+
+            genes = set()
+            consequence = set()
+
+            # The ese and ess can be present or not depending on the transcript,
+            # however, they will be the same for all transcripts. So. after we
+            # retrieve a value we can stop looking for it.
+            ese = ''
+            ess = ''
+            ese_ess = ''
+
+            for transcript in all_transcripts:
+                transcript = transcript.split('|')
+                genes.add(transcript[1])
+                consequence.add(transcript[6])
+                if 'synonymous' in transcript[6]:
+                    mmsplice = transcript[14]
+                    if not ese_ess:
+                        # There is a function to evaluate the ese and ess.
+                        ese_ess = ese_ess_parser(transcript)
+
+            # If any ese or ess was found separate them into different
+            # variables.
+            if ese_ess:
+                ese, ess = ese_ess
+
+            # Remove the genes that are not in the screening genes list by
+            # intersecting the sets.
+            gene = genes & seq_genes
+            gene = ';'.join(gene)
+            consequence = ';'.join(sorted(list(consequence)))
+
+            func_result = (known, gene, codon, af, phylop, gerp, rscu,
+                           mmsplice, ese, ess, encode, consequence)
+
+            if original_posit in synonymous_table:
+                if synonymous_table[original_posit] == func_result:
+                    posit = original_posit
+            if posit not in synonymous_table:
+                synonymous_table[posit] = func_result
+
+            # Account for some variants that have 2 variants.
+            if posit not in swea_af:
+                swea_af[posit] = {}
+            if allele == '1/1':  # two alleles
+                allele_value = 1
+                swea_af[posit][sample_name] = allele_value
+
+            else:  # one allele (0/1 or 1/0)
+                allele_value = 0.5
+                swea_af[posit][sample_name] = allele_value
+
+            if posit not in qc:
+                qc[posit] = consequence
 
 
 def ese_ess_parser(transcript):
@@ -219,12 +250,7 @@ for file in list_of_files:
                 position = f'{chrom}:{position}'
 
                 # Call the synonymous parser function
-                result = synonymous_parser(vcf_line)
-
-                # Store the result for the variant in the dictionary.
-                if result:
-                    if position not in synonymous_table:
-                        synonymous_table[position] = result
+                synonymous_parser(vcf_line, position)
 
         # Raise the file count.
         file_count += 1
