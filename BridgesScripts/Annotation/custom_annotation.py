@@ -40,8 +40,7 @@ def reverse_complement(sequence):
 ese_file = '/home/ar7343bo-s/Resources/RESCUE-ESE_hexamers_200703.txt'
 ess_file = '/home/ar7343bo-s/Resources/ESS_hexamers_200824.txt'
 
-list_of_files = glob.glob("EncodeAnnotation/Control/**/*.vcf",
-                          recursive=True)
+list_of_files = glob.glob("EncodeAnnotation/**/*.vcf", recursive=True)
 for file in list_of_files.copy():
     if '/encode_vep' not in file:
         list_of_files.remove(file)

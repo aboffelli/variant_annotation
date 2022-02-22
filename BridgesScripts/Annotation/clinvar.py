@@ -10,28 +10,28 @@ Description: Script that annotates the clinical information of the variant
 Created on: 2021-12-10
 Author: Arthur Boffelli Castro
 """
-import os
+import glob
+import re
 import time
 
 start_time = time.time()
 
 # Prepare the VCF files that will be run
-files_directory = r"CustomAnnotation/"
-list_of_files = os.listdir(files_directory)
+list_of_files = glob.glob("CustomAnnotation/**/*.vcf", recursive=True)
 for file in list_of_files.copy():
-    if '.vcf' not in file:
-        # Remove any file that is not a vcf from the file list.
+    if '/custom' not in file:
         list_of_files.remove(file)
 
 # Create a dictionary for the ClinVar file info.
 clinvar_dict = {}
 with open(r'/home/ar7343bo-s/variant_summary_GRCh37.txt',
           'r') as variant:
+    print("Loading ClinVar info...")
     for line in variant:
         # # Get only the pathogenic/likely pathogenic variants.
         # if "pathogenic" in vcf_line.lower():
         # Use the chromosome number as keys and a nested dictionary.
-        chrom = line.split('\t')[18]
+        chrom = 'chr' + line.split('\t')[18]
         position = line.split('\t')[31]
         if chrom not in clinvar_dict:
             clinvar_dict[chrom] = {}
@@ -40,6 +40,7 @@ with open(r'/home/ar7343bo-s/variant_summary_GRCh37.txt',
             clinvar_dict[chrom][position] = {line}
         else:
             clinvar_dict[chrom][position].add(line)
+    print('Done.')
 
 # New line to add in the vcf header.
 new_info = '##INFO=<ID=ClinVar,Number=.,Type=String,Description=' \
@@ -56,8 +57,9 @@ new_info = '##INFO=<ID=ClinVar,Number=.,Type=String,Description=' \
 file_count = 1
 for file in list_of_files:
     print(file_count)
-    with open(files_directory + file, 'r') as vcf, \
-            open('ClinVar/clinvar_' + file, 'w') as outvcf:
+    new_file = re.sub(r'CustomAnnotation(\S*/)(custom)',
+                      r'ClinVar\1clinvar_\2', file)
+    with open(file, 'r') as vcf, open(new_file, 'w') as outvcf:
         for vcf_line in vcf:
             # Variant lines
             if not vcf_line.startswith("#"):
@@ -83,7 +85,7 @@ for file in list_of_files:
                             # Add the clinvar line to the info section of the vcf
                             # line
                             vcf_line[7] = vcf_line[7] + ';ClinVar=' + \
-                                          clinvar_line.strip()
+                                clinvar_line.strip()
                             # print('\t'.join(line))
                             break
                 outvcf.write('\t'.join(vcf_line))
