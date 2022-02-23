@@ -26,15 +26,14 @@ def synonymous_parser(vcfline, posit):
         needed for the table.
 
     :param vcfline: line from the vcf file
-    :param posit: string containing the chromosome and position of the
-                     variant.
+    :param posit: list containing the chromosome, position of the
+                     variant and alternative base.
     :return: tuple containing the DbSNP ID, gene affected, the allele
         frequency, conservation value PhyloP, conservation value GERP,
         delta rscu, ese, ess, and encode information.
     """
     # Check if variant is synonymous.
     if 'synonymous_variant' in vcfline:
-
         # Isolate only the annotation info, using regex.
         csq = re.search(r'CSQ=(\S+?),(\S+?)(;ClinVar|\s)', vcfline)
         # The fixed csq contains information that are the same for all
@@ -45,52 +44,36 @@ def synonymous_parser(vcfline, posit):
         phylop = fixed_csq[6]
         gerp = fixed_csq[7]
 
-        # Retrieve the allele frequency to calculate later, assign the value to
-        # the dictionary.
-        allele = vcfline.split('\t')[-1][0:3]
-        # If to alternate alleles, set a loop to use the two bases.
-        if '2' in allele:
-            loops = 2
-        else:
-            loops = 1
-
-        # The delta rscu and the encode are the same for all transcripts, so
-        # they can be retrieved from the transcript that has the synonymous
-        # variant.
-        original_posit = posit
-        for i in range(loops):
-            if '2' in allele:
-                # Reset the position for the second iteration
-                posit = original_posit
-
-                # Add the base to the end of the position, so we can
-                # differentiate the variants
-                base = vcfline.split('\t')[4].split(',')[i]
-                posit += base
-
+        # If the position has different alternative bases we loop through both.
+        for i, base in enumerate(posit):
+            # Retrieve all transcripts that contain the synonymous variant.
             synonymous_transcript = re.findall(
                 r'synonymous_variant\S*?\|-?\d.\d+\|', csq.group(2))
 
-            # Remove variants with NMD transcript.
+            # Remove variants with NMD transcript and missense variants.
             if 'NMD_transcript_variant' in synonymous_transcript[i]:
                 return False
             if 'missense_variant|' in csq.group(0):
                 return False
+
+            # Get the codon, rscu and encode information from the right
+            # transcript (in cases of two alternative bases, there is one
+            # transcript for each base.
             synonymous_transcript = synonymous_transcript[i].split('|')
             codon = synonymous_transcript[1]
             rscu = synonymous_transcript[3]
             encode_info = synonymous_transcript[2].split('&')
             encode = []
-            # Since the encode information can contain more than one protein, in
-            # a
-            # loop, get all proteins in a list and join them together.
+
+            # Since the encode information can contain more than one protein,
+            # use a loop to get all proteins in a list and join them together.
             for prot in encode_info:
                 encode.append(prot.split(':')[0])
             encode = ';'.join(encode)
 
             # It is possible that the same variant affects different genes, so
-            # we loop through all transcripts and retrieve all the gene names
-            # and consequence to join it after.
+            # we loop through all transcripts and store all the gene names
+            # and consequence in a set to keep them unique to join it after.
             all_transcripts = csq.group(0).strip(';ClinVar\t').split(',')[1:]
 
             genes = set()
@@ -124,28 +107,30 @@ def synonymous_parser(vcfline, posit):
             gene = ';'.join(gene)
             consequence = ';'.join(sorted(list(consequence)))
 
+            # Store all the info in a tuple.
             func_result = (known, gene, codon, af, phylop, gerp, rscu,
                            mmsplice, ese, ess, encode, consequence)
 
-            if original_posit in synonymous_table:
-                if synonymous_table[original_posit] == func_result:
-                    posit = original_posit
-            if posit not in synonymous_table:
-                synonymous_table[posit] = func_result
+            # Store the result in the dictionary with the position of the
+            # variant.
+            if base not in synonymous_table:
+                synonymous_table[base] = func_result
 
-            # Account for some variants that have 2 variants.
-            if posit not in swea_af:
-                swea_af[posit] = {}
-            if allele == '1/1':  # two alleles
+            # Calculate the allele frequency and store the result in the af
+            # dictionary.
+            if base not in swea_af:
+                swea_af[base] = {}
+            if allele == '1/1':  # homozygous - two alleles
                 allele_value = 1
-                swea_af[posit][sample_name] = allele_value
+                swea_af[base][sample_name] = allele_value
 
-            else:  # one allele (0/1 or 1/0)
+            else:  # heterozygous - one allele (0/1, 1/0 or 1/2)
                 allele_value = 0.5
-                swea_af[posit][sample_name] = allele_value
+                swea_af[base][sample_name] = allele_value
 
-            if posit not in qc:
-                qc[posit] = consequence
+            # Add the consequence to a quality check file.
+            if base not in qc:
+                qc[base] = consequence
 
 
 def ese_ess_parser(transcript):
@@ -243,11 +228,20 @@ for file in list_of_files:
                 if filt != 'PASS':
                     continue
 
-                # Retrieve the chromosome number and the position of the
-                # variant and save it together as chr:position.
+                # Retrieve the chromosome number, the position of the
+                # variant and the alternative base.
                 chrom = vcf_line.split('\t')[0]
                 position = vcf_line.split('\t')[1]
-                position = f'{chrom}:{position}'
+                # Account for variants with two alternative bases.
+                alt_bases = vcf_line.split('\t')[4].split(',')
+                allele = vcf_line.split('\t')[-1][0:3]
+
+                # Save the position(s) in a list.
+                if '2' in allele:
+                    position = [f'{chrom}:{position}' + alt_bases[0],
+                                f'{chrom}:{position}' + alt_bases[1]]
+                else:
+                    position = [f'{chrom}:{position}' + alt_bases[0]]
 
                 # Call the synonymous parser function
                 synonymous_parser(vcf_line, position)
@@ -270,11 +264,12 @@ for position in swea_af:
 # Save all the information in a text file tab delimited.
 with open('synonymous_table.txt', 'w') as outfile:
     # Add the header
-    print("#Variant\tDbSNP_ID\tGene\tCodon_(ref/alt)\tAF_SweGen\tAF_SWEA\t"
-          "PhyloP\tGERP\tdeltaRSCU\tdeltaLogitPsi\tESE\tESS\tRBP\tConsequence",
+    print("#Variant\tAlternative_base\tDbSNP_ID\tGene\tCodon_(ref/alt)\t"
+          "AF_SweGen\tAF_SWEA\tPhyloP\tGERP\tdeltaRSCU\tdeltaLogitPsi\tESE\t"
+          "ESS\tRBP\tConsequence",
           file=outfile)
 
-    for variant in synonymous_table:
+    for variant in sorted(synonymous_table):
         # Insert the SWEA allele frequency in the result list. One minus the
         # header position since we don't have the position in this list.
         result = list(synonymous_table[variant])
@@ -285,10 +280,12 @@ with open('synonymous_table.txt', 'w') as outfile:
             if not result[j]:
                 result[j] = 'NA'
 
-        # Insert the line into the file.
-        print("{}\t{}".format(variant, '\t'.join(result)),
+        # Insert the line into the file. Separate the base letter from the
+        # position.
+        print("{}\t{}\t{}".format(variant[:-1], variant[-1], '\t'.join(result)),
               file=outfile)
 
+# Create the qc file.
 with open('qc_file.txt', 'w') as qc_file:
     for pos in qc:
         print(pos, qc[pos], file=qc_file)
