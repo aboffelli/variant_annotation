@@ -9,7 +9,7 @@ Created on: 2021-12-16
 Author: Arthur Boffelli Castro
 """
 
-import os
+import glob
 import re
 import time
 
@@ -73,8 +73,7 @@ samples_pathogenic = {}
 most_common = {}
 synonymous_variants = {}
 
-files_directory = "ClinVar/"
-list_of_files = os.listdir(files_directory)
+list_of_files = glob.glob("ClinVar/Control/**/*.vcf", recursive=True)
 for file in list_of_files.copy():
     if '.vcf' not in file:
         list_of_files.remove(file)
@@ -82,8 +81,8 @@ for file in list_of_files.copy():
 file_count = 1
 for file in list_of_files:
     print(file_count)
-    sample_name = re.search(r'filtered_(\S+)_VEP', file).group(1)
-    with open(files_directory + file, 'r') as vcf_file:
+    sample_name = re.search(r'vep_(\S+)\.raw', file).group(1)
+    with open(file, 'r') as vcf_file:
         for vcf_line in vcf_file:
             if not vcf_line.startswith('#'):
                 filt = vcf_line.split('\t')[6]
