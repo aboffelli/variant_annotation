@@ -8,7 +8,8 @@
 ##
 ## Description: Script to plot an interactive complex heatmap containing the 
 ##  synonymous variants from samples that do not have a pathogenic variant 
-##  reported in ClinVar.
+##  reported in ClinVar adapted to the table containing the BRIDGES allele 
+##  frequency.
 ##    
 ##  
 ## -----------------------------------------------------------------------------
@@ -23,10 +24,10 @@ library(tidyverse)
 library(iheatmapr)
 options(scipen = 100)
 
-setwd("~/Box/Notes/Tables/SweaSynVar")
+setwd("~/Box/Arthur/SweaSynVar")
 
 
-synonymous <- read.table('synonymous_table.txt', header=T, sep='\t', comment.char = "")
+synonymous <- read.table('bridges_synonymous_table.txt', header=T, sep='\t', comment.char = "")
 colnames(synonymous)[1] <- 'Variant'
 
 # Reorder the table based on the Gene column, other columns can be added inside
@@ -39,16 +40,28 @@ synonymous_table[!is.na(synonymous_table$RBP),]$RBP<- 'Presence'
 
 
 # Separate the two columns with AF, and isolate just the value from SWEA.
-main.heatmap <- synonymous_table[,6:7] %>% 
-    separate(AF_SWEA, c('AF_SWEA', NA), "([(])")
+main.heatmap <- synonymous_table[,6:9] %>% 
+    separate(AF_SWEA, c('AF_SWEA', NA), "([ (])") %>% 
+    separate(AF_BRIDGES_Control, c('AF_BRIDGES_Control', NA), "([ (])") %>% 
+    separate(AF_BRIDGES_Samples, c('AF_BRIDGES_Samples', NA), "([ (])")
 # Transform into numeric characters.
 main.heatmap$AF_SWEA <- as.numeric(main.heatmap$AF_SWEA)
+main.heatmap$AF_BRIDGES_Control <- as.numeric(main.heatmap$AF_BRIDGES_Control)
+main.heatmap$AF_BRIDGES_Samples <- as.numeric(main.heatmap$AF_BRIDGES_Samples)
 
 # Create a vector with the number of samples in SWEA.
 swea_presence <- separate(data=synonymous_table, 
-                                 col=AF_SWEA, 
-                                 into= c(NA, 'AF_SWEA'), 
-                                 sep="([(])")$AF_SWEA
+                          col=AF_SWEA, 
+                          into= c(NA, 'AF_SWEA'), 
+                          sep="([(])")$AF_SWEA
+bc_presence <- separate(data=synonymous_table, 
+                          col=AF_BRIDGES_Control, 
+                          into= c(NA, 'AF_BRIDGES_Control'), 
+                          sep="([(])")$AF_BRIDGES_Control
+bs_presence <- separate(data=synonymous_table, 
+                        col=AF_BRIDGES_Samples, 
+                        into= c(NA, 'AF_BRIDGES_Samples'), 
+                        sep="([(])")$AF_BRIDGES_Samples
 
 # Add all the information the we want to appear in the hoverinfo in the row 
 # names separated by line breaks.
@@ -59,6 +72,12 @@ rownames(main.heatmap) <- paste(synonymous_table$Variant,
                                 paste('SWEA presence:', 
                                       substr(swea_presence, 1, 
                                              nchar(swea_presence)-1)),
+                                paste('BRIDGES Control presence:',
+                                      substr(bc_presence, 1, 
+                                             nchar(bc_presence)-1)),
+                                paste('BRIDGES Samples presence:',
+                                      substr(bs_presence, 1, 
+                                             nchar(bs_presence)-1)),
                                 paste('RBP proteins:', synonymous$RBP),
                                 # Plotly uses HTML tags.
                                 sep='<br>')
@@ -67,13 +86,13 @@ rownames(main.heatmap) <- paste(synonymous_table$Variant,
 # Transform the data frames into matrix to use in iheatmapr. Only the heatmaps 
 # need to be matrixes, the annotations can be data frames.
 main.heatmap <- as.matrix(main.heatmap)
-ese_ess <- synonymous_table[,c(12:14)]
-phylop <- as.matrix(synonymous_table[,8])
+ese_ess <- synonymous_table[,c(14:16)]
+phylop <- as.matrix(synonymous_table[,10])
 # Rename the columns for the column label in the plot.
 colnames(phylop) <- 'PhyloP'
-gerp <- as.matrix(synonymous_table[,9])
+gerp <- as.matrix(synonymous_table[,11])
 colnames(gerp) <- 'GERP'
-rscu <- as.matrix(synonymous_table[,10])
+rscu <- as.matrix(synonymous_table[,12])
 colnames(rscu) <- 'deltaRSCU'
 
 # Assign a value for NAs in the gene column.
@@ -83,24 +102,24 @@ genes[is.na(genes)] <- 'Not a targeted gene'
 
 # Create the plot
 the_plot <- main_heatmap(main.heatmap, name='Allele frequency', 
-             colors= c('lightblue', 'darkblue'), 
-             # Change the hover info 'Row' to 'Variant'
-             tooltip=setup_tooltip_options(prepend_row='Variant: ')) %>%
+                         colors= c('lightblue', 'darkblue'), 
+                         # Change the hover info 'Row' to 'Variant'
+                         tooltip=setup_tooltip_options(prepend_row='Variant: ')) %>%
     # Add the column label for the AF heatmap
     add_col_labels() %>%
     
     # Add the three annotation columns for ESE, ESS and RBP
     add_row_annotation(data.frame('ESE' = ese_ess$ESE,
-                       'ESS' = ese_ess$ESS,
-                       'RBP' = ese_ess$RBP
-                       ),
-                       colors = list('ESE' = c('yellow',
-                                               'orange',
-                                               'black'),
-                                     'ESS' = c('yellow',
-                                               'orange',
-                                               'black'),
-                                     'RBP' = c('forestgreen', 'white'))) %>%
+                                  'ESS' = ese_ess$ESS,
+                                  'RBP' = ese_ess$RBP
+    ),
+    colors = list('ESE' = c('yellow',
+                            'orange',
+                            'black'),
+                  'ESS' = c('yellow',
+                            'orange',
+                            'black'),
+                  'RBP' = c('forestgreen', 'white'))) %>%
     
     # Add the PhyloP heatmap and the column labels
     add_main_heatmap(phylop, name='PhyloP', colors='RdBu', 
@@ -124,10 +143,10 @@ the_plot
 
 # Save the HTML plot.
 the_plot %>% 
-    save_iheatmap("synonymous_heatmap_int.html")
+    save_iheatmap("bridges_synonymous_heatmap_int.html")
 
 the_plot %>% 
-    save_iheatmap("~/Box/Arthur/SweaSynVar/synonymous_heatmap_int.html")
+    save_iheatmap("~/Box/Arthur/SweaSynVar/bridges_synonymous_heatmap_int.html")
 
 # To save as a static plot the package webshot is necessary, after installing 
 # it, just change the extension of the file name to pdf/png/jpeg.
