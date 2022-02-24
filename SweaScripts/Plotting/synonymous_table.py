@@ -258,7 +258,7 @@ for position in swea_af:
 
     # Divide the sum by the number of samples and store it in the dictionary.
     swea_af_perc[position] = \
-        f'{swea_af_perc[position] / len(swea_af[position]):.3f} ' \
+        f'{swea_af_perc[position] / 3403:.6f} ' \
         f'({len(swea_af[position])} samples)'
 
 # Save all the information in a text file tab delimited.
