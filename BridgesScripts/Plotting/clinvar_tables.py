@@ -17,6 +17,12 @@ start_time = time.time()
 
 
 def is_pathogenic(vcfline, pos):
+    """
+
+    :param vcfline:
+    :param pos:
+    :return:
+    """
     if "ClinVar" in vcf_line:
         clinvar_info = re.search(r'ClinVar=(\S*)', vcfline).group(1)
         ref = clinvar_info.split('|')[-2]
@@ -46,6 +52,12 @@ def is_pathogenic(vcfline, pos):
 
 
 def type_of_clinical_significance(clinvar, pos):
+    """
+
+    :param clinvar:
+    :param pos:
+    :return:
+    """
     clinvar_info = clinvar.split('|')
     type_dict[pos] = clinvar_info[6]
     if 'synonymous_variant' in vcf_line:
@@ -54,6 +66,13 @@ def type_of_clinical_significance(clinvar, pos):
 
 
 def pathogenic_samples(sample, clinvar, pos):
+    """
+
+    :param sample:
+    :param clinvar:
+    :param pos:
+    :return:
+    """
     if sample not in samples_pathogenic:
         samples_pathogenic[sample] = {}
     if pos not in samples_pathogenic[sample]:
@@ -61,6 +80,11 @@ def pathogenic_samples(sample, clinvar, pos):
 
 
 def most_common_variant(pos):
+    """
+
+    :param pos:
+    :return:
+    """
     if pos not in most_common:
         most_common[pos] = 1
     else:
@@ -73,7 +97,7 @@ samples_pathogenic = {}
 most_common = {}
 synonymous_variants = {}
 
-list_of_files = glob.glob("ClinVar/Control/**/*.vcf", recursive=True)
+list_of_files = glob.glob("./**/*.vcf", recursive=True)
 for file in list_of_files.copy():
     if '.vcf' not in file:
         list_of_files.remove(file)
