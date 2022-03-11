@@ -17,6 +17,7 @@
 ##  
 ## -----------------------------------------------------------------------------
 library(ggplot2)
+library(tidyverse, quietly = T)
 
 pie_chart <- function(file_table, plot_name) {
     colnames(file_table)[1] <- 'V1'
@@ -39,7 +40,7 @@ sample_type <- "Controls/BCFH"
 total_num <- 3243
 # total_num <- 53306
 
-# sample_type <- "Cases"
+# sample_type <- "Cases/BCFH"
 # total_num <- 10927
 # total_num <- 60239
 
@@ -76,17 +77,20 @@ ggsave(paste0(sample_type, '/clinical_type_percentage.png'),
 most_common <- read.table(paste0(
     sample_type,'/most_common_pathogenic_var.txt'), sep='\t')
 
-most_common_plot <- ggplot(data=most_common[most_common$V2>5,], 
-                           aes(x=reorder(V1, -V2), y=V2))+
+most_common <- most_common %>% separate(V1, c(NA, NA, NA, "V1"), "_") 
+most_common <- aggregate(most_common$V2, by=list(Gene=most_common$V1), FUN=sum)
+
+most_common_plot <- ggplot(data=most_common, 
+                           aes(x=reorder(Gene, -x), y=x))+
     geom_bar(stat='identity') +
     theme_classic() +
     scale_x_discrete(guide = guide_axis(n.dodge=2)) +
     labs(x='Variant', y='Count', 
-         title='Most common pathogenic breast cancer variants') +
+         title='Most common genes with pathogenic variants') +
     theme()
-ggsave(paste0(sample_type, '/most_common_pathogenic_variant.pdf'), 
+ggsave(paste0(sample_type, '/most_common_genes_pathogenic_variant.pdf'), 
        most_common_plot, width=35, height=20, units='cm')
-ggsave(paste0(sample_type, '/most_common_pathogenic_variant.png'),
+ggsave(paste0(sample_type, '/most_common_genes_pathogenic_variant.png'),
        most_common_plot, width=35, height=20, units='cm')
 
 ################################################################################
