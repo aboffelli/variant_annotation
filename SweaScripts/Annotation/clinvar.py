@@ -18,7 +18,7 @@ import time
 start_time = time.time()
 
 # Put all files in a list, removing anything that is not a vcf file.
-files_directory = r"CustomAnnotation/"
+files_directory = r"raidsetGATK/CustomAnnotation/"
 list_of_files = os.listdir(files_directory)
 for file in list_of_files.copy():
     if '.vcf' not in file:
@@ -26,7 +26,7 @@ for file in list_of_files.copy():
 
 # Initiate a dictionary to store the ClinVar file info.
 clinvar_dict = {}
-with open(r'/home/ar7343bo-s/variant_summary_GRCh37.txt',
+with open(r'/home/ar7343bo-s/Resources/variant_summary_GRCh37.txt',
           'r') as variant:
     for line in variant:
         # Use the chromosome numbers as keys for a nested dictionary.
@@ -75,7 +75,8 @@ for file in list_of_files:
                 # Search only in the respective chromosome set.
                 if pos in clinvar_dict[chrom]:
                     for clinvar_line in clinvar_dict[chrom][pos]:
-                        if search in clinvar_line:
+                        if search == '\t'.join(clinvar_line.strip().split(
+                                '\t')[-3:]):
                             # Change the '|' in the clinvarline to ',', and the
                             # spaces to '_'. Join the ClinVar line with '|'.
                             clinvar_line = clinvar_line.replace('|', ',')

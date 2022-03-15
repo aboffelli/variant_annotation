@@ -17,14 +17,14 @@ import time
 start_time = time.time()
 
 # Prepare the VCF files that will be run
-list_of_files = glob.glob("raidset/CustomAnnotation/Samples/**/*.vcf", recursive=True)
+list_of_files = glob.glob("raidset/CustomAnnotation/**/*.vcf", recursive=True)
 for file in list_of_files.copy():
     if '/custom' not in file:
         list_of_files.remove(file)
 
 # Create a dictionary for the ClinVar file info.
 clinvar_dict = {}
-with open(r'/home/ar7343bo-s/variant_summary_GRCh37.txt',
+with open(r'/home/ar7343bo-s/Resources/variant_summary_GRCh37.txt',
           'r') as variant:
     print("Loading ClinVar info...")
     for line in variant:
@@ -60,7 +60,7 @@ for file in list_of_files:
     print(file_count)
     # Change the path and file names for the output file
     new_file = re.sub(r'CustomAnnotation(\S*/)(custom)',
-                      r'ClinVar\1clinvar_\2', file).lstrip('raidset/')
+                      r'ClinVar\1clinvar_\2', file)
     with open(file, 'r') as vcf, open(new_file, 'w') as outvcf:
         for vcf_line in vcf:
             # Variant lines
@@ -78,7 +78,8 @@ for file in list_of_files:
                 # Search only in the respective chromosome set.
                 if pos in clinvar_dict[chrom]:
                     for clinvar_line in clinvar_dict[chrom][pos]:
-                        if search in clinvar_line:
+                        if search == '\t'.join(clinvar_line.strip().split(
+                                '\t')[-3:]):
                             # Change the '|' in the clinvarline to ',', and the
                             # spaces to '_'. Join the ClinVar line with '|'.
                             clinvar_line = clinvar_line.replace('|', ',')

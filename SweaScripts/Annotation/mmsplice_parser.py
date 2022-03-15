@@ -34,7 +34,6 @@ file_count = 1
 # Loop through the MMSplice files
 for vcf_file in list_of_files:
     print(file_count)
-    print(vcf_file)
     # Find the same file in the ClinVar directory.
     clinvar_file = 'clinvar' + vcf_file.replace('mmsplice', '')
 
