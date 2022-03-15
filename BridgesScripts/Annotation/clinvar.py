@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Title: clinvar.py
+Title: Clinvar Annotation BRIDGES
 
 Description: Script that annotates the clinical information of the variant
     based on the file variant_summary.txt obtained from ClinVar at
@@ -9,6 +9,8 @@ Description: Script that annotates the clinical information of the variant
 
 Created on: 2021-12-10
 Author: Arthur Boffelli Castro
+
+GitHub: https://github.com/aboffelli/variant_annotation
 """
 import glob
 import re
