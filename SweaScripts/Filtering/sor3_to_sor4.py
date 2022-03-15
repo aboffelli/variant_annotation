@@ -1,15 +1,27 @@
 #!~/miniconda3/bin/python3
 """
-Script created to change the filter for the SOR value without rerunning the
-whole pipeline. The initial value was > 3, and the value was changed to > 4.
+Title: SOR3 to SOR4
 
-Script recognize SOR3 in the filter column, then check the SOR value. If it is
-less than 4, the program checks if the filter line contains only SOR3 and change
-it to PASS. If there are more filters, the program only removes the SOR3 from
-the list. If the number is higher than 4, only replace SOR3 to SOR4.
+Description: Script created to change the filter for the SOR value without
+    rerunning the whole pipeline. The initial value was > 3, and the value was
+    changed to > 4.
+
+    Script recognize SOR3 in the filter column, then check the SOR value. If it
+    is less than 4, the program checks if the filter line contains only SOR3
+    and change it to PASS. If there are more filters, the program only removes
+    the SOR3 from the list. If the number is higher than 4, only replace SOR3
+    to SOR4.
+
+Created on: 2021-10-15
+Author: Arthur Boffelli Castro
+
+GitHub: https://github.com/aboffelli/variant_annotation
 """
 import os
 import re
+import time
+
+start_time = time.time()
 
 # Retrieve a list of files in the Annotation directory.
 list_of_files = os.listdir("Annotation/")
@@ -59,3 +71,6 @@ for file in list_of_files:
                     line = '##FILTER=<ID=SOR4,Description="SOR > 4.0">\n'
                 # write all the header lines in the edited file.
                 edited.write(line)
+
+# Print the run time.
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))
