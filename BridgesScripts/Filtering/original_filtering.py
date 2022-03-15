@@ -33,10 +33,18 @@ list_of_files = glob.glob(
 
 # Base values to the threshold
 base_values = {
-    "QUAL": 30,
     "AF": 0.2,
+    "QUAL": 30,
     "MQ": 60,
-    "NM": 2.0
+    "AFxDP": 7.5
+}
+
+filter_names = {
+    "QUAL": "q30",
+    "AF": "f0.2",
+    "MQ": "Q60",
+    "NM": "NM2.0",
+    "AFxDP": "fd7.5"
 }
 
 filter_set = {"PASS", "q20", "Q10", "NM5.25", "f0.05"}
@@ -60,10 +68,37 @@ for file in list_of_files:
                 # We can keep the variants that did not pass the filters, since
                 # the original values are higher than the ones being used.
                 filt = vcf_line.split('\t')[6]
-
-                # Check if any of the filters are the ones that we are changing.
-                if all(i not in filter_set for i in filt.split(';')):
+                filt = filt.split(';')
+                # If none of the filters is either PASS or one of the filter
+                # that we want to change, leave the line as it is skip the line.
+                if all(i not in filter_set for i in filt):
+                    # print(vcf_line)  # , file=outvcf)
                     continue
+                values = re.search(
+                    r";DP=([^A-Z;]+)\S*;AF=([^A-Z;]+)\S*;QUAL=([^A-Z;]+)\S*"
+                    r";MQ=([^A-Z;]+)\S*;NM=([^A-Z;]+)", vcf_line)
+
+                dp = float(values.group(1))
+                af = float(values.group(2))
+                qual = float(values.group(3))
+                mq = float(values.group(4))
+                nm = float(values.group(5))
+
+                # Values that must be less than
+                variant_values = [af, qual, mq, af*dp]
+
+                for index, key in enumerate(base_values):
+                    if variant_values[index] < base_values[key]:
+                        filt.append(filter_names[key])
+                if nm > 2.0:
+                    filt.append(filter_names['NM'])
+                filt = set(filt) - filter_set
+                filt = ';'.join(list(filt))
+                if not filt:
+                    filt = 'PASS'
+                print(filt)
+
+    file_count += 1
 
 
 # Print the run time.
