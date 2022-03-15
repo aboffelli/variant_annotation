@@ -75,6 +75,9 @@ for file in list_of_files:
                 # Search only in the respective chromosome set.
                 if pos in clinvar_dict[chrom]:
                     for clinvar_line in clinvar_dict[chrom][pos]:
+
+                        # If the position and bases are the same as the end of
+                        # the Clinvar line.
                         if search == '\t'.join(clinvar_line.strip().split(
                                 '\t')[-3:]):
                             # Change the '|' in the clinvarline to ',', and the
@@ -86,7 +89,7 @@ for file in list_of_files:
                             # Add the clinvar line to the info section of the
                             # vcf line
                             vcf_line[7] = vcf_line[7] + ';ClinVar=' + \
-                                          clinvar_line.strip()
+                                                        clinvar_line.strip()
 
                             break
                 # Write the line to the file.
