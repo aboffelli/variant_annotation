@@ -19,8 +19,9 @@
 library(ggplot2)
 library(ggrepel)
 library(tidyverse)
+library(gridExtra)
 
-setwd("~/Box/Notes/TestData/Bridges/ClinVar")
+setwd("~/Box/Notes/TestData/Bridges/")
 
 pie_chart <- function(file_table, plot_name) {
     colnames(file_table)[1] <- 'V1'
@@ -39,7 +40,8 @@ pie_chart <- function(file_table, plot_name) {
 
 
 
-known_novel <- read.table('novel_known_count.txt', sep='\t')
+known_novel <- read.table('ClinVar/novel_known_count.txt', sep='\t')
+filt_known_novel <- read.table('FilteredClinVar/novel_known_count.txt', sep='\t')
 
 known_novel <- transform(known_novel, Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 2)*100))
 
@@ -48,14 +50,23 @@ known_novel <- known_novel %>%
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
 
+filt_known_novel <- transform(filt_known_novel, Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 2)*100))
+
+filt_known_novel <- filt_known_novel %>% 
+    mutate(csum = rev(cumsum(rev(Perc))), 
+           pos = Perc/2 + lead(csum, 1),
+           pos = if_else(is.na(pos), Perc/2, pos))
+
 known_novel_plot <- pie_chart(known_novel, "Known vs novel percentage")
-print(known_novel_plot)
-ggsave('pie_chart.pdf', known_novel_plot)
+filt_known_novel_plot <- pie_chart(filt_known_novel, "Known vs novel percentage after filtration")
+arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2)
+ggsave('pie_chart.pdf', arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2))
 
 
 ################################################################################
 
-histogram <- read.table('table.txt', sep = '\t')
+histogram <- read.table('ClinVar/table.txt', sep = '\t')
+filt_histogram <- read.table('FilteredClinVar/table.txt', sep = '\t')
 
 density <- ggplot(data = histogram, aes(x=V3, fill=V2)) +
     stat_density() +
@@ -64,5 +75,12 @@ density <- ggplot(data = histogram, aes(x=V3, fill=V2)) +
     scale_fill_discrete(name="Variant type") +
     theme_bw()
 
-print(density)
-ggsave('density_212_files.pdf', density)
+filt_density <- ggplot(data = filt_histogram, aes(x=V3, fill=V2)) +
+    stat_density() +
+    facet_wrap(~V1, ncol = 1) +
+    labs(title='Allele Fraction density after filtration', x="Allele fraction") +
+    scale_fill_discrete(name="Variant type") +
+    theme_bw()
+
+arrangeGrob(density, filt_density)
+ggsave('density.pdf', arrangeGrob(density, filt_density))

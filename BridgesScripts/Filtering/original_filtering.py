@@ -20,16 +20,16 @@ import glob
 start_time = time.time()
 
 # Prepare the vcf files that will be used.
-# list_of_files = glob.glob("raidset/ClinVar/**/*.vcf", recursive=True)
-# for file in list_of_files.copy():
-#     # Remove any files that are not the last version of the vcfs.
-#     if '/clinvar' not in file:
-#         list_of_files.remove(file)
+list_of_files = glob.glob("raidset/ClinVar/**/*.vcf", recursive=True)
+for file in list_of_files.copy():
+    # Remove any files that are not the last version of the vcfs.
+    if '/clinvar' not in file:
+        list_of_files.remove(file)
 
 # Test data
-list_of_files = glob.glob(
-    "/Users/student/Box/Notes/TestData/Bridges/Clinvar/**/*.vcf",
-    recursive=True)
+# list_of_files = glob.glob(
+#     "/Users/student/Box/Notes/TestData/Bridges/ClinVar/**/*.vcf",
+#     recursive=True)
 
 # Base values to the threshold
 base_values = {
@@ -39,6 +39,7 @@ base_values = {
     "AFxDP": 7.5
 }
 
+# New names for each filter
 filter_names = {
     "QUAL": "q30",
     "AF": "f0.2",
@@ -47,7 +48,15 @@ filter_names = {
     "AFxDP": "fd7.5"
 }
 
+# Old filters names that we want to change
 filter_set = {"PASS", "q20", "Q10", "NM5.25", "f0.05"}
+
+# Connection from the old filter names to the filters.
+old_filters = {
+    "q20": "QUAL",
+    "Q10": "MQ",
+    "f0.05": "AF",
+}
 
 file_count = 1
 for file in list_of_files:
@@ -55,24 +64,42 @@ for file in list_of_files:
     print(file_count)
     # Change the path and file names for the output file
     new_file = re.sub(r'ClinVar(\S*/)(clinvar)',
-                      r'FixedClinVar\1fixed_\2', file).lstrip('raidset/')
-    with open(file, 'r') as vcf:  # , open(new_file, 'w') as outvcf:
+                      r'FilteredClinVar\1filtered_\2', file)
+
+    with open(file, 'r') as vcf, open(new_file, 'w') as outvcf:
         for vcf_line in vcf:
             # Header lines
             if vcf_line.startswith("#"):
-                # TODO: Update the header.
-                pass
+                new_line = ''
+                if '##FILTER' in vcf_line:
+                    filt_name = re.search(r"ID=(\w+\.?\w+)", vcf_line).group(1)
+                    if filt_name in old_filters:
+                        filt_type = old_filters[filt_name]
+                        new_line = re.sub(filt_name, filter_names[filt_type],
+                                          vcf_line)
+                        new_line = re.sub(r'\d\.?\d+(?=">)',
+                                          str(base_values[filt_type]), new_line)
+
+                    elif filt_name == "NM5.25":
+                        new_line = re.sub(r"NM5\.25", "NM2.0", vcf_line)
+                        new_line = re.sub(r'>=\s\d\.\d+(?=,)', '> 2.0',
+                                          new_line)
+
+                if new_line:
+                    vcf_line = new_line
+                outvcf.write(vcf_line)
 
             # Variant lines
             else:
+                split_line = vcf_line.split('\t')
                 # We can keep the variants that did not pass the filters, since
                 # the original values are higher than the ones being used.
-                filt = vcf_line.split('\t')[6]
+                filt = split_line[6]
                 filt = filt.split(';')
                 # If none of the filters is either PASS or one of the filter
                 # that we want to change, leave the line as it is skip the line.
                 if all(i not in filter_set for i in filt):
-                    # print(vcf_line)  # , file=outvcf)
+                    outvcf.write(vcf_line)
                     continue
                 values = re.search(
                     r";DP=([^A-Z;]+)\S*;AF=([^A-Z;]+)\S*;QUAL=([^A-Z;]+)\S*"
@@ -96,7 +123,9 @@ for file in list_of_files:
                 filt = ';'.join(list(filt))
                 if not filt:
                     filt = 'PASS'
-                print(filt)
+                split_line[6] = filt
+                new_line = '\t'.join(split_line)
+                outvcf.write(new_line)
 
     file_count += 1
 
