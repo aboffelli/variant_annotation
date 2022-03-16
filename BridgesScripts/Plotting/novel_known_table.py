@@ -18,16 +18,16 @@ import re
 start_time = time.time()
 
 # # Prepare the vcf files that will be used.
-# list_of_files = glob.glob("raidset/ClinVar/**/*.vcf", recursive=True)
-# for file in list_of_files.copy():
-#     # Remove any files that are not the last version of the vcfs.
-#     if '/clinvar' not in file:
-#         list_of_files.remove(file)
+list_of_files = glob.glob("raidset/ClinVar/**/*.vcf", recursive=True)
+for file in list_of_files.copy():
+    # Remove any files that are not the last version of the vcfs.
+    if '/clinvar' not in file:
+        list_of_files.remove(file)
 
 # Test data
-list_of_files = glob.glob(
-    "/Users/student/Box/Notes/TestData/Bridges/Clinvar/**/*.vcf",
-    recursive=True)
+# list_of_files = glob.glob(
+#     "/Users/student/Box/Notes/TestData/Bridges/Clinvar/**/*.vcf",
+#     recursive=True)
 
 # Create a dictionary to store all the information that we need, we use sets to
 # keep unique variants.
@@ -50,7 +50,7 @@ for file in list_of_files:
 
     # Define if it is a Control or Case file based on the path.
     # TODO: change this for the right index
-    file_type = file.split('/')[-2]
+    file_type = file.split('/')[2]
     with open(file, 'r') as vcf:
         for vcfline in vcf:
             if not vcfline.startswith('#'):
@@ -87,14 +87,14 @@ for file in list_of_files:
 
     file_count += 1
 
-with open('/Users/student/Box/Notes/TestData/Bridges/Clinvar/novel_known_count.txt',
+with open('novel_known_count.txt',
           'w') as outtable:
     for file_type in var_dict:
         for var_type in var_dict[file_type]:
             print(f'''{file_type}\t{var_type}\t{
             len(var_dict[file_type][var_type])}''', file=outtable)
 
-with open('/Users/student/Box/Notes/TestData/Bridges/Clinvar/table.txt',
+with open('table.txt',
           'w') as outtable:
     for file_type in af_dict:
         for var_type in af_dict[file_type]:
