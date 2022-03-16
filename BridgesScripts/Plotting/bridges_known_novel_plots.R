@@ -41,7 +41,7 @@ pie_chart <- function(file_table, plot_name) {
 
 
 known_novel <- read.table('ClinVar/novel_known_count.txt', sep='\t')
-filt_known_novel <- read.table('FilteredClinVar/novel_known_count.txt', sep='\t')
+filt_known_novel <- read.table('FilteredClinVar/filtered_novel_known_count.txt', sep='\t')
 
 known_novel <- transform(known_novel, Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 2)*100))
 
@@ -59,7 +59,7 @@ filt_known_novel <- filt_known_novel %>%
 
 known_novel_plot <- pie_chart(known_novel, "Known vs novel percentage")
 filt_known_novel_plot <- pie_chart(filt_known_novel, "Known vs novel percentage after filtration")
-arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2)
+grid.arrange(known_novel_plot, filt_known_novel_plot, ncol=2)
 ggsave('pie_chart.pdf', arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2))
 
 
