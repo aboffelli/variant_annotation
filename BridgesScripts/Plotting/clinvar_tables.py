@@ -11,6 +11,7 @@ Author: Arthur Boffelli Castro
 
 import glob
 import re
+import os
 import time
 
 start_time = time.time()
@@ -119,8 +120,13 @@ for file in list_of_files:
 
         file_count += 1
 
-# Print the tables
+# Create an output directory if it doesn't exists.
 out_dir = 'ClinVarTables/'
+if not os.path.exists(out_dir):
+    os.mkdir(out_dir)
+
+# Print the tables to the files.
+
 # Pathogenic count
 with open(out_dir + 'pathogenic_count.txt', 'w') as outfile:
     for key in patho_count:

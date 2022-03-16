@@ -34,15 +34,15 @@ pie_chart <- function(file_table, plot_name) {
 }
 
 # setwd("C:/Users/Arthu/Box/Notes/Tables/ClinvarTables")
-setwd("/Users/student/Box/Notes/Tables/BRIDGES/ClinVarTables")
+setwd("/Users/student/Box/Notes/TestData/Bridges/FilteredClinVarTables")
 
-sample_type <- "Controls/BCFH"
-total_num <- 3243
+# sample_type <- "Control"
+# total_num <- 3243
 # total_num <- 53306
 
-# sample_type <- "Cases/BCFH"
+sample_type <- "Samples"
 # total_num <- 10927
-# total_num <- 60239
+total_num <- 60239
 
 pathogenic <- read.table(paste0(sample_type, '/pathogenic_count.txt'), 
                          sep = '\t')[,-1]
