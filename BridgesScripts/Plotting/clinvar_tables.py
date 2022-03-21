@@ -8,6 +8,7 @@ Description: Script that creates tables with ClinVar information to plot.
 Created on: 2021-12-16
 Author: Arthur Boffelli Castro
 """
+# TODO: Add comments
 
 import glob
 import re
@@ -33,23 +34,23 @@ def is_pathogenic(vcfline, pos):
         if 'Pathogenic' in clinvar_info or "Likely_pathogenic" in clinvar_info:
             if 'Glycogen_storage_disease_due_to_glucose-6-' \
                'phosphatase_deficiency_type_IA' not in clinvar_info:
-                patho_count[pos] = 'Pathogenic/Likely pathogenic related to ' \
+                patho_count[fam_hist][pos] = 'Pathogenic/Likely pathogenic related to ' \
                                    'breast cancer'
                 pathogenic_samples(sample_name, clinvar_info, pos)
                 most_common_variant(pos)
             else:
-                patho_count[pos] = 'Pathogenic/Likely pathogenic ' \
+                patho_count[fam_hist][pos] = 'Pathogenic/Likely pathogenic ' \
                                    'not related to breast cancer'
 
         else:
-            patho_count[pos] = 'Non pathogenic'
+            patho_count[fam_hist][pos] = 'Non pathogenic'
         type_of_clinical_significance(clinvar_info, pos)
 
     else:
-        patho_count[pos] = 'No ClinVar info'
+        patho_count[fam_hist][pos] = 'No ClinVar info'
         if 'synonymous_variant' in vcf_line:
-            if pos not in synonymous_variants:
-                synonymous_variants[pos] = 'No ClinVar info'
+            if pos not in synonymous_variants[fam_hist]:
+                synonymous_variants[fam_hist][pos] = 'No ClinVar info'
 
 
 def type_of_clinical_significance(clinvar, pos):
@@ -60,10 +61,10 @@ def type_of_clinical_significance(clinvar, pos):
     :return:
     """
     clinvar_info = clinvar.split('|')
-    type_dict[pos] = clinvar_info[6]
+    type_dict[fam_hist][pos] = clinvar_info[6]
     if 'synonymous_variant' in vcf_line:
-        if pos not in synonymous_variants:
-            synonymous_variants[pos] = clinvar_info[6]
+        if pos not in synonymous_variants[fam_hist]:
+            synonymous_variants[fam_hist][pos] = clinvar_info[6]
 
 
 def pathogenic_samples(sample, clinvar, pos):
@@ -74,10 +75,10 @@ def pathogenic_samples(sample, clinvar, pos):
     :param pos:
     :return:
     """
-    if sample not in samples_pathogenic:
-        samples_pathogenic[sample] = {}
-    if pos not in samples_pathogenic[sample]:
-        samples_pathogenic[sample][pos] = clinvar.split('|')[6]
+    if sample not in samples_pathogenic[fam_hist]:
+        samples_pathogenic[fam_hist][sample] = {}
+    if pos not in samples_pathogenic[fam_hist][sample]:
+        samples_pathogenic[fam_hist][sample][pos] = clinvar.split('|')[6]
 
 
 def most_common_variant(pos):
@@ -86,17 +87,32 @@ def most_common_variant(pos):
     :param pos:
     :return:
     """
-    if pos not in most_common:
-        most_common[pos] = 1
+    if pos not in most_common[fam_hist]:
+        most_common[fam_hist][pos] = 1
     else:
-        most_common[pos] += 1
+        most_common[fam_hist][pos] += 1
 
 
-patho_count = {}
-type_dict = {}
-samples_pathogenic = {}
-most_common = {}
-synonymous_variants = {}
+with open("family_bc_history_cases.txt", 'r') as family_samples:
+    family = set()
+    for line in family_samples:
+        sample = re.search(r"vep_(\S+)", line).group(1)
+        family.add(sample.strip())
+
+patho_count = {"Family_hist": {},
+               "No_family_hist": {}}
+
+type_dict = {"Family_hist": {},
+             "No_family_hist": {}}
+
+samples_pathogenic = {"Family_hist": {},
+                      "No_family_hist": {}}
+
+most_common = {"Family_hist": {},
+               "No_family_hist": {}}
+
+synonymous_variants = {"Family_hist": {},
+                       "No_family_hist": {}}
 
 list_of_files = glob.glob("./**/*.vcf", recursive=True)
 for file in list_of_files.copy():
@@ -107,6 +123,11 @@ file_count = 1
 for file in list_of_files:
     print(file_count)
     sample_name = re.search(r'vep_(\S+)\.raw', file).group(1)
+    if sample_name in family:
+        fam_hist = 'Family_hist'
+    else:
+        fam_hist = "No_family_hist"
+
     with open(file, 'r') as vcf_file:
         for vcf_line in vcf_file:
             if not vcf_line.startswith('#'):
@@ -129,34 +150,39 @@ if not os.path.exists(out_dir):
 
 # Pathogenic count
 with open(out_dir + 'pathogenic_count.txt', 'w') as outfile:
-    for key in patho_count:
-        print(f'{key}\t{patho_count[key]}', file=outfile)
+    for history in patho_count:
+        for key in patho_count[history]:
+            print(f'{history}\t{key}\t{patho_count[history][key]}', file=outfile)
 
 # Clinical type
 with open(out_dir + 'clinical_type.txt', 'w') as outfile:
-    for key in type_dict:
-        print(f'{key}\t{type_dict[key]}', file=outfile)
+    for history in type_dict:
+        for key in type_dict[history]:
+            print(f'{history}\t{key}\t{type_dict[history][key]}', file=outfile)
 
 # Samples pathogenic
 with open(out_dir + 'samples_pathogenic.txt', 'w') as outfile:
-    for sample in samples_pathogenic:
-        for key in samples_pathogenic[sample]:
-            info = key.split(':')
-            chrom = info[0]
-            pos, ref, alt, gene = info[1].split('_')
-            print(f'{sample}\t{chrom}\t{pos}\t{ref}\t{alt}\t{gene}\t'
-                  f'{samples_pathogenic[sample][key]}',
-                  file=outfile)
+    for history in samples_pathogenic:
+        for sample in samples_pathogenic[history]:
+            for key in samples_pathogenic[history][sample]:
+                info = key.split(':')
+                chrom = info[0]
+                pos, ref, alt, gene = info[1].split('_')
+                print(f'{history}\t{sample}\t{chrom}\t{pos}\t{ref}\t{alt}\t'
+                      f'{gene}\t{samples_pathogenic[history][sample][key]}',
+                      file=outfile)
 
 # Most common pathogenic
 with open(out_dir + 'most_common_pathogenic_var.txt', 'w') as outfile:
-    for key in most_common:
-        print(f'{key}\t{most_common[key]}', file=outfile)
+    for history in most_common:
+        for key in most_common[history]:
+            print(f'{history}\t{key}\t{most_common[history][key]}', file=outfile)
 
 
 # Synonymous variants
 with open(out_dir+'synonymous_variants.txt', 'w') as outfile:
-    for key in synonymous_variants:
-        print(f'{key}\t{synonymous_variants[key]}', file=outfile)
+    for history in synonymous_variants:
+        for key in synonymous_variants[history]:
+            print(f'{history}\t{key}\t{synonymous_variants[history][key]}', file=outfile)
 
 print('Run time: {:.2f} seconds'.format(time.time() - start_time))

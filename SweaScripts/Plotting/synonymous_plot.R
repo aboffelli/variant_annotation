@@ -23,10 +23,10 @@ library(tidyverse)
 library(iheatmapr)
 options(scipen = 100)
 
-setwd("~/Box/Notes/Tables/SweaSynVar")
+setwd("~/Box/Notes/Tables/SWEA/SweaSynVar")
 
 
-synonymous <- read.table('synonymous_table.txt', header=T, sep='\t', comment.char = "")
+synonymous <- read.table('new_synonymous_table.txt', header=T, sep='\t', comment.char = "")
 colnames(synonymous)[1] <- 'Variant'
 
 # Reorder the table based on the Gene column, other columns can be added inside

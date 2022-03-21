@@ -36,7 +36,7 @@ for file in list_of_files.copy():
 
 # Retrieve the variant positions from the synonymous table
 swea_synonymous = {}
-unique_genes = set()
+# unique_genes = set()
 
 print('Loading synonymous_table...')
 with open('/home/ar7343bo-s/SWEA/synonymous_table.txt', 'r') as syn_table:
@@ -63,13 +63,13 @@ for file in list_of_files:
                 alt_base = vcfline.split('\t')[4]
                 position += alt_base
 
-                csq = re.search(r'CSQ=(\S+)', vcfline).group(1)
-                csq = csq.split(',')
-
-                for transcript in csq:
-                    gene = transcript.split('|')[1]
-                    if gene:
-                        unique_genes.add(gene)
+                # csq = re.search(r'CSQ=(\S+)', vcfline).group(1)
+                # csq = csq.split(',')
+                #
+                # for transcript in csq:
+                #     gene = transcript.split('|')[1]
+                #     if gene:
+                #         unique_genes.add(gene)
 
                 if position in swea_synonymous:
                     allele = vcfline.split('\t')[-1][0:3]
@@ -123,10 +123,10 @@ with open('bridges_synonymous_table.txt', 'w') as outfile:
             if dict_type == 'Samples':
                 print('\t'.join(new_line), file=outfile)
 
-with open('bridges_gene_list.txt',
-          'w') as gene_list:
-    for gene_name in sorted(list(unique_genes)):
-        print(gene_name, file=gene_list)
+# with open('bridges_gene_list.txt',
+#           'w') as gene_list:
+#     for gene_name in sorted(list(unique_genes)):
+#         print(gene_name, file=gene_list)
 
 # Print the run time.
 print('Run time: {:.2f} seconds'.format(time.time() - start_time))

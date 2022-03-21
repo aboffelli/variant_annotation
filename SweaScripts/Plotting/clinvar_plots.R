@@ -30,11 +30,11 @@ pie_chart <- function(file_table, plot_name) {
 }
 
 # setwd("C:/Users/Arthu/Box/Notes/Tables/ClinvarTables")
-setwd("~/Box/Notes/Tables/ClinvarTables")
+setwd("~/Box/Notes/Tables/SWEA/NewClinvarTables")
 
 pathogenic <- read.table('pathogenic_count.txt', sep = '\t')[,-1]
 pathogenic <- as.data.frame(table(pathogenic))
-pathogenic <- cbind(pathogenic, Perc=round(pathogenic$Freq/sum(pathogenic$Freq)*100, 2))
+pathogenic <- cbind(pathogenic, Perc=round(pathogenic$Freq/sum(pathogenic$Freq)*100, 4))
 
 
 pathogenic_plot <- pie_chart(pathogenic, "Pathogenic Percentage")
