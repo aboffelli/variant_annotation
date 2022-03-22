@@ -11,6 +11,8 @@ Author: Arthur Boffelli Castro
 GitHub: https://github.com/aboffelli/
 """
 
+# TODO: Add comments.
+
 import time
 import re
 import glob
