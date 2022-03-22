@@ -59,17 +59,17 @@ with open('/home/ar7343bo-s/SWEA/synonymous_table.txt', 'r') as syn_table:
 
 print('Done.\nReading files...')
 
-# Start two dictionaries separating Control and Cases, one for storing the
+# Start two dictionaries separating Controls and Cases, one for storing the
 # genotype value for each variant, and the other to calculate the percentage.
-bridges_af = {'Control': {}, 'Samples': {}}
-bridges_af_perc = {'Control': {}, 'Samples': {}}
+bridges_af = {'Controls': {}, 'Cases': {}}
+bridges_af_perc = {'Controls': {}, 'Cases': {}}
 
 # File count that will be printed in the screen.
 file_count = 1
 for file in list_of_files:
     print(file_count)
 
-    # Retrieve the type (Control/Samples) from the file path.
+    # Retrieve the type (Controls/Cases) from the file path.
     file_type = file.split('/')[2]
 
     # Isolate the sample name.
@@ -137,10 +137,10 @@ for file in list_of_files:
 for dict_type in bridges_af:
 
     # The number of samples is different depending on the type.
-    if dict_type == "Samples":
+    if dict_type == "Cases":
         total_num = 60239
 
-    else:  # Control
+    else:  # Controls
         total_num = 53306
 
     for position in bridges_af[dict_type]:
@@ -161,8 +161,8 @@ for dict_type in bridges_af:
 
 # Add the new columns to the header of the table and join it together again.
 new_header = header.split('\t')
-new_header.insert(7, 'AF_BRIDGES_Control')
-new_header.insert(8, 'AF_BRIDGES_Samples')
+new_header.insert(7, 'AF_BRIDGES_Controls')
+new_header.insert(8, 'AF_BRIDGES_Cases')
 new_header = '\t'.join(new_header).strip()
 
 # Write everything to a new file.
@@ -171,7 +171,7 @@ with open('bridges_synonymous_table.txt', 'w') as outfile:
 
     # Set the position to  insert the information based on the type.
     for dict_type in bridges_af_perc:
-        if dict_type == 'Control':
+        if dict_type == 'Controls':
             insert_position = 7
         else:
             insert_position = 8
@@ -191,9 +191,9 @@ with open('bridges_synonymous_table.txt', 'w') as outfile:
                 new_line = swea_synonymous[position]
                 new_line.insert(insert_position, 'NA')
 
-            # If we are on Samples already, we can join and print to the file,
+            # If we are on Cases already, we can join and print to the file,
             # otherwise we still need to include the samples numbers.
-            if dict_type == 'Samples':
+            if dict_type == 'Cases':
                 print('\t'.join(new_line), file=outfile)
 
 # # Print all the unique genes in a file.

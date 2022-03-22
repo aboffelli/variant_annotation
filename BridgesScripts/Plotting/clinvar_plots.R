@@ -40,13 +40,13 @@ pie_chart <- function(file_table, plot_name) {
 # setwd("C:/Users/Arthu/Box/Notes/Tables/ClinvarTables")
 setwd("/Users/student/Box/Notes/TestData/Bridges/FilteredClinVarTables")
 
-# sample_type <- "Control"
-# fam_hist_num <- 3243
-# total_num <- 53306 - fam_hist_num
+sample_type <- "Controls"
+fam_hist_num <- 3243
+total_num <- 53306 - fam_hist_num
 
-sample_type <- "Samples"
-fam_hist_num <- 10927
-total_num <- 60239 - fam_hist_num
+# sample_type <- "Cases"
+# fam_hist_num <- 10927
+# total_num <- 60239 - fam_hist_num
 
 pathogenic <- read.table(paste0(sample_type, '/pathogenic_count.txt'), 
                          sep = '\t')[,-2]
@@ -63,9 +63,9 @@ no_family_patho <- subset(pathogenic, V1 != "Family_hist") %>%
            pos = if_else(is.na(pos), Perc/2, pos))
 pathogenic <- bind_rows(family_patho, no_family_patho)
 
-pathogenic_plot <- pie_chart(pathogenic, paste("Pathogenic Percentage",
+pathogenic_plot <- pie_chart(pathogenic, paste("Pathogenic Percentage -",
                                                sample_type))
-print(pathogenic_plot)
+
 ggsave(paste0(sample_type, '/pathogenic_percentage.pdf'), 
        pathogenic_plot, width=30, height=20, units='cm')
 ggsave(paste0(sample_type, '/pathogenic_percentage.png'), 
@@ -88,7 +88,8 @@ no_family_clin <- subset(clinical_type, V1 != "Family_hist") %>%
            pos = if_else(is.na(pos), Perc/2, pos))
 clinical_type <- bind_rows(family_clin, no_family_clin)
 
-clinical_type_plot <- pie_chart(clinical_type, paste('Clinical Type Percentage',
+clinical_type_plot <- pie_chart(clinical_type, 
+                                paste('Clinical Type Percentage -',
                                                      sample_type))
 print(clinical_type_plot)
 ggsave(paste0(sample_type, '/clinical_type_percentage.pdf'), 
@@ -110,7 +111,7 @@ most_common_plot <- ggplot(data=most_common,
     theme_classic() +
     scale_x_discrete(guide = guide_axis(n.dodge=2)) +
     labs(x='Variant', y='Count', 
-         title=paste('Most common genes with pathogenic variants',
+         title=paste('Most common genes with pathogenic variants -',
                      sample_type)) +
     facet_wrap(~V1, ncol = 1) +
     theme()
@@ -132,7 +133,7 @@ write.table(samples_pathogenic,
             sep='\t', row.names=F, col.names=F, quote=F)
 samples_pathogenic <- as.data.frame(table(samples_pathogenic$V1, samples_pathogenic$Freq))
 samples_pathogenic$Freq[samples_pathogenic$Var1 == 'Family_hist' & samples_pathogenic$Var2=='0' ] <- fam_hist_num - sum(samples_pathogenic$Freq[samples_pathogenic$Var1=='Family_hist' & samples_pathogenic$Var2 != '0'])
-samples_pathogenic$Freq[samples_pathogenic$Var1 != 'Family_hist' & samples_pathogenic$Var2=='0' ] <- fam_hist_num - sum(samples_pathogenic$Freq[samples_pathogenic$Var1 !='Family_hist' & samples_pathogenic$Var2 != '0'])
+samples_pathogenic$Freq[samples_pathogenic$Var1 != 'Family_hist' & samples_pathogenic$Var2=='0' ] <- total_num - sum(samples_pathogenic$Freq[samples_pathogenic$Var1 !='Family_hist' & samples_pathogenic$Var2 != '0'])
 
 samples_pathogenic <- transform(samples_pathogenic, Perc = ave(Freq, Var1, FUN = function(x) round(x/sum(x), 4)*100))
 colnames(samples_pathogenic)[1:2] <- c('V1', 'V2' )
@@ -148,7 +149,7 @@ no_family_samples <- subset(samples_pathogenic, V1 != "Family_hist") %>%
 samples_pathogenic <- bind_rows(family_samples, no_family_samples)
 
 samples_pathogenic_plot <- pie_chart(
-    samples_pathogenic, paste("Pathogenic breast cancer variants by sample",
+    samples_pathogenic, paste("Pathogenic breast cancer variants by sample -",
                               sample_type))
 print(samples_pathogenic_plot)
 ggsave(paste0(sample_type, '/pathogenic_variants_percentage.pdf'), 

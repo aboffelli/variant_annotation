@@ -93,7 +93,14 @@ def most_common_variant(pos):
         most_common[fam_hist][pos] += 1
 
 
-with open("family_bc_history_cases.txt", 'r') as family_samples:
+list_of_files = glob.glob("./**/*.vcf", recursive=True)
+for file in list_of_files.copy():
+    if '.vcf' not in file:
+        list_of_files.remove(file)
+
+file_type = os.path.abspath(os.getcwd()).split('/')[-1].lower()
+
+with open(f"family_bc_history_{file_type}.txt", 'r') as family_samples:
     family = set()
     for line in family_samples:
         sample = re.search(r"vep_(\S+)", line).group(1)
@@ -113,11 +120,6 @@ most_common = {"Family_hist": {},
 
 synonymous_variants = {"Family_hist": {},
                        "No_family_hist": {}}
-
-list_of_files = glob.glob("./**/*.vcf", recursive=True)
-for file in list_of_files.copy():
-    if '.vcf' not in file:
-        list_of_files.remove(file)
 
 file_count = 1
 for file in list_of_files:

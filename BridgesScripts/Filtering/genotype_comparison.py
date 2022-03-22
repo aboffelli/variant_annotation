@@ -20,7 +20,7 @@ import glob
 start_time = time.time()
 
 test_files = glob.glob(r"/Users/student/Box/Notes/TestData/Bridges/"
-                       r"FilteredClinVar/Samples/**/*.vcf", recursive=True)
+                       r"FilteredClinVar/Cases/**/*.vcf", recursive=True)
 variants_dict = {}
 for x in test_files:
     variants_dict[re.search(r'vep_(\S+).raw', x).group(1)] = {}

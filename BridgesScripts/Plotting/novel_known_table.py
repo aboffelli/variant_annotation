@@ -33,16 +33,16 @@ for file in list_of_files.copy():
 # keep unique variants.
 var_dict = {"Control": {'Known': set(),
                         "Novel": set()},
-            "Samples": {"Known": set(),
-                        "Novel": set()}
+            "Cases": {"Known": set(),
+                      "Novel": set()}
             }
 
 af_dict = {"Control": {'Known': [],
                        "Novel": [],
                        "Pathogenic": []},
-           "Samples": {"Known": [],
-                       "Novel": [],
-                       "Pathogenic": []}
+           "Cases": {"Known": [],
+                     "Novel": [],
+                     "Pathogenic": []}
            }
 file_count = 1
 for file in list_of_files:
