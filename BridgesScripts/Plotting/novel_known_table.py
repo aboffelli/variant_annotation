@@ -49,7 +49,6 @@ for file in list_of_files:
     print(file_count)
 
     # Define if it is a Control or Case file based on the path.
-    # TODO: change this for the right index
     file_type = file.split('/')[2]
     with open(file, 'r') as vcf:
         for vcfline in vcf:

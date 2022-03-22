@@ -20,6 +20,7 @@ library(ggplot2)
 library(tidyverse, quietly = T)
 library(ggrepel)
 
+# TODO: Add comments.
 pie_chart <- function(file_table, plot_name) {
     colnames(file_table)[2] <- 'V2'
     x <- ggplot(data=file_table, aes(x='', y=Perc, 
