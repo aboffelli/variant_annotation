@@ -23,36 +23,12 @@ start_time = time.time()
 pheno_file = '/home/ar7343bo-s/BRIDGES/concept_699_kvist_pheno_v13.txt'
 control_pheno_file = pheno_file.rstrip('.txt') + '_controls.txt'
 
-# Create a dictionary to store the info for breast cancer dividing Cases and
-# Controls
-bc_dict = {
-    'Cases': {
-        'FirstBC': set(),
-        'SecondBC': set(),
-        'BC_50': set()
-    },
-    'Controls': {
-        'FirstBC': set(),
-        'SecondBC': set(),
-        'BC_50': set()
-    }
-}
+# Create a dictionary to store the info for each sample dividing Cases and
+# Controls.
+samples_dict = {'Cases': {},
+                'Controls': {}
+                }
 
-# Create a dictionary to store the info for ovarian cancer dividing Cases and
-# Controls
-oc_dict = {
-    'Cases': {
-        'FirstOC': set(),
-        'SecondOC': set(),
-        'OC_50': set()
-    },
-    "Controls": {
-        'FirstOC': set(),
-        'SecondOC': set(),
-        'OC_50': set()
-    }
-
-}
 
 # Open the files.
 with open(pheno_file, 'r') as pheno, open(control_pheno_file, 'r') as control:
@@ -74,19 +50,16 @@ with open(pheno_file, 'r') as pheno, open(control_pheno_file, 'r') as control:
             if file == control:
                 line.insert(1, '')
 
+            # Create a categories list.
+            category_list = ["FirstBC", "SecondBC", "FirstOC", "SecondOC",
+                             "50BC", "50OC"]
+
             # Store all the information needed.
             sample = line[0]
-            first_bc = line[22]
-            second_bc = line[24]
-            first_oc = line[26]
-            second_oc = line[28]
-            bc_50 = line[30]
-            oc_50 = line[31]
+            sample_list = list(map(line.__getitem__, [22, 24, 26, 28, 30, 31]))
 
-            # Store the information in two different lists (breast cancer and
-            # ovarian cancer) and transform the contents in integers.
-            bc_list = [int(first_bc), int(second_bc), int(bc_50)]
-            oc_list = [int(first_oc), int(second_oc), int(oc_50)]
+            # Transform the items in integers, so zeros will be False.
+            sample_list = [int(x) for x in sample_list]
 
             # Set the sample type to be used in the dictionaries.
             if file == pheno:
@@ -96,87 +69,23 @@ with open(pheno_file, 'r') as pheno, open(control_pheno_file, 'r') as control:
 
             # Using enumerate we get the index of the list, if it is True (not
             # 0) and not 888 (which means missing data) we add the sample name
-            # to the set in the respective dictionary and category.
-            for index, category in enumerate(bc_dict[sample_type]):
-                if bc_list[index] and bc_list[index] != 888:
-                    bc_dict[sample_type][category].add(sample)
-            for index, category in enumerate(oc_dict[sample_type]):
-                if oc_list[index] and oc_list[index] != 888:
-                    oc_dict[sample_type][category].add(sample)
+            # to the dictionary and the respective category.
+            for index, category in enumerate(category_list):
+                if sample_list[index] and sample_list[index] != 888:
+                    if sample not in samples_dict[sample_type]:
+                        samples_dict[sample_type][sample] = [category]
+                    else:
+                        samples_dict[sample_type][sample].append(category)
 
 
-# To retrieve the total numbers to print to stdout, we loop through the sample
-# types in one of the dictionaries.
-for sample_type in bc_dict:
-    # Start empty sets to store the combinations of sets.
-    bc_intersect = set()
-    oc_intersect = set()
-
-    # Print with sample type is being used.
-    print(sample_type + ':')
-
-    # Loop through all the categories in the dictionary.
-    for key in bc_dict[sample_type]:
-        # Replace BC to OC for the Ovarian Cancer.
-        oc_key = key.replace("B", "O")
-
-        # Print the length of the set for each category.
-        print(f'{key}: {len(bc_dict[sample_type][key])} patients')
-        print(f'''{oc_key}: {len(oc_dict[sample_type][oc_key])} patients''')
-
-        # Join the sets to keep only the unique patients.
-        bc_intersect = bc_intersect.union(bc_dict[sample_type][key])
-        oc_intersect = oc_intersect.union(oc_dict[sample_type][oc_key])
-
-    # Print the total of unique patients for BC and OC.
-    print(f"""\nTotal unique patients with family history breast cancer: {
-    len(bc_intersect)}""")
-    print(f"""Total unique patients with family history ovarian cancer: {
-    len(oc_intersect)}\n""")
-
-    # Use the joint sets to print the file path to the files.
-    with open(f'''family_bc_history_{
-            sample_type.lower()}.txt''', 'w') as bc_out, open(
-            f'''family_oc_history_{sample_type.lower()}.txt''', 'w') as oc_out:
-        for sample in bc_intersect:
-
-            # Different path for intermediate panel.
-            if sample.startswith("Inter"):
-                if sample_type == 'Controls':
-                    sample = f'''intermediate_panel/ctrl{
-                    "_".join(sample.split("_")[0:2])
-                    }/clinvar_custom_encode_vep_{sample}'''
-                else:
-                    sample = f'''intermediate_panel/{
-                    "_".join(sample.split("_")[0:2])
-                    }/clinvar_custom_encode_vep_{sample}'''
-
-            # Path for bridges panel
-            else:
-                directory = f"""{sample.lower().split('_')[0]}{
-                sample.lower().split('_')[2].lstrip('lib')}"""
-                sample = f'''bridges_panel1_run1/{directory
-                }/clinvar_custom_encode_vep_{sample}'''
-            print(sample, file=bc_out)
-
-        # Do the same for the OC set.
-        for sample in oc_intersect:
-            if sample.startswith("Inter"):
-                if sample_type == 'Controls':
-                    sample = f'''intermediate_panel/ctrl{
-                    "_".join(sample.split("_")[0:2])
-                    }/clinvar_custom_encode_vep_{sample}'''
-                else:
-                    sample = f'''intermediate_panel/{
-                    "_".join(sample.split("_")[0:2])
-                    }/clinvar_custom_encode_vep_{sample}'''
-            else:
-                directory = f"""{sample.lower().split('_')[0]}{
-                sample.lower().split('_')[2].lstrip('lib')}"""
-                sample = f'''bridges_panel1_run1/{directory
-                }/clinvar_custom_encode_vep_{sample}'''
-            print(sample, file=oc_out)
-
+# Save the sample name and all the categories for that sample in a file.
+for sample_type in samples_dict:
+    # Create two files, one for cases and one for controls.
+    with open(f'''family_history_{
+    sample_type.lower()}.txt''', 'w') as family_out:
+        for sample in samples_dict[sample_type]:
+            print(f"{sample}\t{'/'.join(samples_dict[sample_type][sample])}",
+                  file=family_out)
 
 # Print the run time.
 print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))
