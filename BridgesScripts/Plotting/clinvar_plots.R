@@ -22,15 +22,14 @@ library(ggrepel)
 
 # TODO: Add comments.
 pie_chart <- function(file_table, plot_name) {
-    colnames(file_table)[2] <- 'V2'
     x <- ggplot(data=file_table, aes(x='', y=Perc, 
-                                     fill=V2)) +
+                                     fill=Type)) +
         theme_void() +
         geom_col(col='black', size=0.05) +
         coord_polar(theta = 'y') +
         scale_fill_discrete(name='') +
         labs(title=plot_name) +
-        facet_wrap(~V1, ncol = 2) +
+        facet_wrap(~Hist, ncol = 2) +
         geom_label_repel(data = file_table,
                          aes(y = pos, label = paste0(Perc, "%")),
                          size = 4.5, nudge_x = 0.6, show.legend = FALSE)
@@ -41,31 +40,40 @@ pie_chart <- function(file_table, plot_name) {
 # setwd("C:/Users/Arthu/Box/Notes/Tables/ClinvarTables")
 setwd("/Users/student/Box/Notes/TestData/Bridges/FilteredClinVarTables")
 
-sample_type <- "Controls"
-fam_hist_num <- 3243
-total_num <- 53306 - fam_hist_num
+# sample_type <- "Controls"
+# fam_hist_num <- 3698
+# total_num <- 53306 - fam_hist_num
 
-# sample_type <- "Cases"
-# fam_hist_num <- 10927
-# total_num <- 60239 - fam_hist_num
+sample_type <- "Cases"
+fam_hist_num <- 11518
+total_num <- 60239 - fam_hist_num
 
 pathogenic <- read.table(paste0(sample_type, '/pathogenic_count.txt'), 
                          sep = '\t')[,-2]
-pathogenic <- as.data.frame(table(pathogenic))
-pathogenic <- transform(pathogenic, Perc = ave(Freq, V1, FUN = function(x) round(x/sum(x), 4)*100))
+colnames(pathogenic)[2] <- 'Type'
+pathogenic <- pathogenic %>% 
+    mutate(Hist = if_else(V1 !="No_family_hist", "Family history", 
+                          "No family history")) %>% 
+    select(-V1)
 
-family_patho <- subset(pathogenic, V1 == "Family_hist") %>% 
+pathogenic <- as.data.frame(table(pathogenic))
+pathogenic <- transform(pathogenic, Perc = ave(Freq, Hist, FUN = function(x) round(x/sum(x), 4)*100))
+
+family_patho <- subset(pathogenic, Hist == "Family history") %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
-no_family_patho <- subset(pathogenic, V1 != "Family_hist") %>% 
+no_family_patho <- subset(pathogenic, Hist != "Family history") %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
 pathogenic <- bind_rows(family_patho, no_family_patho)
 
+
 pathogenic_plot <- pie_chart(pathogenic, paste("Pathogenic Percentage -",
                                                sample_type))
+
+print(pathogenic_plot)
 
 ggsave(paste0(sample_type, '/pathogenic_percentage.pdf'), 
        pathogenic_plot, width=30, height=20, units='cm')
@@ -76,14 +84,21 @@ ggsave(paste0(sample_type, '/pathogenic_percentage.png'),
 
 clinical_type <- read.table(paste0(sample_type, '/clinical_type.txt'), 
                             sep = '\t')[,-2]
+colnames(clinical_type)[2] <- "Type"
+clinical_type <- clinical_type %>% 
+    mutate(Hist = if_else(V1 !="No_family_hist", "Family history", 
+                          "No family history")) %>% 
+    select(-V1)
 clinical_type <- as.data.frame(table(clinical_type))
-clinical_type <- transform(clinical_type, Perc = ave(Freq, V1, FUN = function(x) round(x/sum(x), 4)*100))
+clinical_type <- transform(clinical_type, 
+                           Perc = ave(Freq, Hist, 
+                                      FUN = function(x) round(x/sum(x), 4)*100))
 
-family_clin <- subset(clinical_type, V1 == "Family_hist") %>% 
+family_clin <- subset(clinical_type, Hist == "Family history") %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
-no_family_clin <- subset(clinical_type, V1 != "Family_hist") %>% 
+no_family_clin <- subset(clinical_type, Hist != "Family history") %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
@@ -103,8 +118,14 @@ ggsave(paste0(sample_type, '/clinical_type_percentage.png'),
 most_common <- read.table(paste0(
     sample_type,'/most_common_pathogenic_var.txt'), sep='\t')
 
+most_common <- most_common %>% 
+    mutate(Hist = if_else(V1 !="No_family_hist", "Family history", 
+                          "No family history")) %>% 
+    select(-V1)
 most_common <- most_common %>% separate(V2, c(NA, NA, NA, "V2"), "_") 
-most_common <- aggregate(most_common$V3, by=list(Gene=most_common$V2, V1=most_common$V1), FUN=sum)
+most_common <- aggregate(most_common$V3, 
+                         by=list(Gene=most_common$V2,
+                                 Hist = most_common$Hist), FUN=sum)
 
 most_common_plot <- ggplot(data=most_common, 
                            aes(x=reorder(Gene, -x), y=x))+
@@ -114,7 +135,7 @@ most_common_plot <- ggplot(data=most_common,
     labs(x='Variant', y='Count', 
          title=paste('Most common genes with pathogenic variants -',
                      sample_type)) +
-    facet_wrap(~V1, ncol = 1) +
+    facet_wrap(~Hist, ncol = 1) +
     theme()
 print(most_common_plot)
 ggsave(paste0(sample_type, '/most_common_genes_pathogenic_variant.pdf'), 
@@ -126,36 +147,57 @@ ggsave(paste0(sample_type, '/most_common_genes_pathogenic_variant.png'),
 
 samples_pathogenic <- read.table(paste0(
     sample_type, '/samples_pathogenic.txt'), sep='\t')
-samples_pathogenic <- as.data.frame(table(samples_pathogenic[,1:2]))
+
+samples_pathogenic <- samples_pathogenic %>% 
+    mutate(Hist = if_else(V1 !="No_family_hist", "Family history", 
+                          "No family history"))
+
+samples_pathogenic <- as.data.frame(table(samples_pathogenic[,c(1,2,9)])) %>% 
+    filter(Freq > 0) %>% 
+    select(-Freq)
+
+# samples_pathogenic %>% as_tibble %>% select(V2, Freq) %>% group_by(V2) %>% nest %>% 
+#     mutate(any_pathologic = map_lgl(data, function(df){}))
+# Purrr
 
 samples_pathogenic <- samples_pathogenic[order(samples_pathogenic$Freq),]
-write.table(samples_pathogenic, 
-            file=paste0(sample_type, '/number_of_pathogenic_var_by_sample.txt'),
-            sep='\t', row.names=F, col.names=F, quote=F)
-samples_pathogenic <- as.data.frame(table(samples_pathogenic$V1, samples_pathogenic$Freq))
-samples_pathogenic$Freq[samples_pathogenic$Var1 == 'Family_hist' & samples_pathogenic$Var2=='0' ] <- fam_hist_num - sum(samples_pathogenic$Freq[samples_pathogenic$Var1=='Family_hist' & samples_pathogenic$Var2 != '0'])
-samples_pathogenic$Freq[samples_pathogenic$Var1 != 'Family_hist' & samples_pathogenic$Var2=='0' ] <- total_num - sum(samples_pathogenic$Freq[samples_pathogenic$Var1 !='Family_hist' & samples_pathogenic$Var2 != '0'])
+# write.table(samples_pathogenic, 
+#             file=paste0(sample_type, '/number_of_pathogenic_var_by_sample.txt'),
+#             sep='\t', row.names=F, col.names=F, quote=F)
+samples_pathogenic <- as.data.frame(table(samples_pathogenic$V1, 
+                                          samples_pathogenic$Hist)) %>% 
+    filter(Freq > 0)
 
-samples_pathogenic <- transform(samples_pathogenic, Perc = ave(Freq, Var1, FUN = function(x) round(x/sum(x), 4)*100))
-colnames(samples_pathogenic)[1:2] <- c('V1', 'V2' )
+colnames(samples_pathogenic)[1:2] <- c('Type', 'Hist')
+samples_pathogenic <- transform(samples_pathogenic,
+                                Perc = ave(Freq,
+                                           FUN = function(x) round(x/sum(x),
+                                                                   4)*100))
 
-family_samples <- subset(samples_pathogenic, V1 == "Family_hist") %>% 
+
+family_samples <- samples_pathogenic %>%
+    filter(Hist == "Family history") %>%
+    transform(Perc = ave(Freq, FUN = function(x) round(x/sum(x), 4)*100)) %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
-no_family_samples <- subset(samples_pathogenic, V1 != "Family_hist") %>% 
+
+no_family_samples <- samples_pathogenic %>%
+    filter(Hist == "No family history") %>% 
+    mutate(Perc=Freq/total_num*100) %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
+
 samples_pathogenic <- bind_rows(family_samples, no_family_samples)
 
 samples_pathogenic_plot <- pie_chart(
-    samples_pathogenic, paste("Pathogenic breast cancer variants by sample -",
+    family_samples, paste("Type of family history with patogenic variants -",
                               sample_type))
 print(samples_pathogenic_plot)
-ggsave(paste0(sample_type, '/pathogenic_variants_percentage.pdf'), 
+ggsave(paste0(sample_type, '/type_history_percentage.pdf'), 
        samples_pathogenic_plot, width=30, height=20, units='cm')
-ggsave(paste0(sample_type, '/pathogenic_variants_percentage.png'), 
+ggsave(paste0(sample_type, '/type_history_percentage.png'), 
        samples_pathogenic_plot, width=30, height=20, units='cm') 
     
     
