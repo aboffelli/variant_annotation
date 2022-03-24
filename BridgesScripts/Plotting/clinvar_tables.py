@@ -142,30 +142,21 @@ for file in list_of_files.copy():
 file_type = os.path.abspath(os.getcwd()).split('/')[-1].lower()
 
 # Load the family history file and save the sample names in  a set.
-with open(f"family_bc_history_{file_type}.txt", 'r') as family_samples:
-    family = set()
+with open(f"family_history_{file_type}.txt", 'r') as family_samples:
+    family = {}
     for line in family_samples:
         # Retrieve the sample name from the file name.
-        sample = re.search(r"vep_(\S+)", line).group(1)
+        sample, category = line.strip().split('\t')
         # Remove the new line in the end.
-        family.add(sample.strip())
+        family[sample] = category
 
 # Initiate all the dictionaries with two divisions, one for samples with family
 # history and one for samples without family history.
-patho_count = {"Family_hist": {},
-               "No_family_hist": {}}
-
-type_dict = {"Family_hist": {},
-             "No_family_hist": {}}
-
-samples_pathogenic = {"Family_hist": {},
-                      "No_family_hist": {}}
-
-most_common = {"Family_hist": {},
-               "No_family_hist": {}}
-
-synonymous_variants = {"Family_hist": {},
-                       "No_family_hist": {}}
+patho_count = {}
+type_dict = {}
+samples_pathogenic = {}
+most_common = {}
+synonymous_variants = {}
 
 
 file_count = 1
@@ -176,12 +167,17 @@ for file in list_of_files:
     # Get the sample name from the file name.
     sample_name = re.search(r'vep_(\S+)\.raw', file).group(1)
 
-    # Check if the sample has family history or not and set the variable
-    # accordingly.
+    # Check if the sample has family history or not and create the categories
+    # in all dictionaries.
     if sample_name in family:
-        fam_hist = 'Family_hist'
+        fam_hist = family[sample_name]
     else:
         fam_hist = "No_family_hist"
+
+    for d in [patho_count, type_dict, samples_pathogenic,
+              most_common, synonymous_variants]:
+        if fam_hist not in d:
+            d[fam_hist] = {}
 
     # Open the file
     with open(file, 'r') as vcf_file:
