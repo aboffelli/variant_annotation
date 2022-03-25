@@ -32,7 +32,8 @@ pie_chart <- function(file_table, plot_name) {
         facet_wrap(~Hist, ncol = 2) +
         geom_label_repel(data = file_table,
                          aes(y = pos, label = paste0(Perc, "%")),
-                         size = 4.5, nudge_x = 0.6, show.legend = FALSE)
+                         size = 4.5, nudge_x = 0.6, show.legend = FALSE,
+                         max.overlaps = 30)
         
     return(x)
 }
@@ -160,7 +161,7 @@ samples_pathogenic <- as.data.frame(table(samples_pathogenic[,c(1,2,9)])) %>%
 #     mutate(any_pathologic = map_lgl(data, function(df){}))
 # Purrr
 
-samples_pathogenic <- samples_pathogenic[order(samples_pathogenic$Freq),]
+# samples_pathogenic <- samples_pathogenic[order(samples_pathogenic$Freq),]
 # write.table(samples_pathogenic, 
 #             file=paste0(sample_type, '/number_of_pathogenic_var_by_sample.txt'),
 #             sep='\t', row.names=F, col.names=F, quote=F)
