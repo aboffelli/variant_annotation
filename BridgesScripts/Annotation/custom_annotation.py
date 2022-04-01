@@ -96,11 +96,11 @@ for file in list_of_files:
                 if line.startswith('##INFO=<ID=CSQ,Number=.,Type=String,'
                                    'Description="Consequence annotations from '
                                    'Ensembl VEP. Format:'):
-                    new_csq_header = 'Existing_variation|AF|EUR_AF|SweGen_AF|' \
-                                     'gnomAD_AF|gnomAD_NFE_AF|PhyloP|GERP,' \
-                                     'Gene|SYMBOL|Feature|STRAND|EXON|INTRON|' \
-                                     'Consequence|Codons|Encode|delta_RSCU|' \
-                                     'ESEs_REF|ESEs_ALT|ESSs_REF|ESSs_ALT'
+                    new_csq_header = ('Existing_variation|AF|EUR_AF|SweGen_AF|'
+                                     'gnomAD_AF|gnomAD_NFE_AF|PhyloP|GERP,'
+                                     'Gene|SYMBOL|Feature|STRAND|EXON|INTRON|'
+                                     'Consequence|Codons|Encode|delta_RSCU|'
+                                     'ESEs_REF|ESEs_ALT|ESSs_REF|ESSs_ALT')
 
                     # Change the line using regex substitution.
                     line = re.sub(r'(.*Format:).*(">)', r'\g<1> ' +
@@ -112,8 +112,8 @@ for file in list_of_files:
                                      'Description="Consequence annotations from'
                                      ' Ensembl VEP. Format: Feature|Encode">'):
                     line = line.rstrip('Feature|Encode">')
-                    line += 'ProteinName_CellLine:Strand:Log2FoldChange:' \
-                            'NegLog10Value">'
+                    line += ('ProteinName_CellLine:Strand:Log2FoldChange:'
+                             'NegLog10Value">')
                     print(line, file=out_vcf)
 
                 else:  # All other header lines.

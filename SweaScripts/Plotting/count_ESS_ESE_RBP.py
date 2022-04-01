@@ -8,6 +8,7 @@ Description:
 Created on: 2021-11-17
 Author: Arthur Boffelli Castro
 """
+# TODO: add comments.
 
 import os
 import re

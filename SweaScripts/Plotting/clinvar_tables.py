@@ -8,6 +8,7 @@ Description: Script that creates tables with ClinVar information to plot.
 Created on: 2021-12-16
 Author: Arthur Boffelli Castro
 """
+# TODO: Add comments
 
 import os
 import re

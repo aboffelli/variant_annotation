@@ -1,12 +1,21 @@
 #!~/miniconda3/bin/python3
 
 """
-Script to parse, compare and identify in which gene each variant is located.
-"""
+Title: Variant Position Parser
 
+Description: Script to parse, compare and identify if the variants are located
+    in the targeted genes.
+
+Created on: 2021-10-04
+Author: Arthur Boffelli Castro
+
+GitHub: https://github.com/aboffelli/variant_annotation
+"""
+# TODO: Add comments.
 import os
 import sys
 
+# Dictionary with the flanking region size used in the sequencing.
 flanking_regions = {'BRCA1': 150000, 'BRCA2': 150000, 'CDH1': 50000,
                     'CHEK2': 50000, 'PTEN': 50000, 'STK11': 50000,
                     'TP53': 50000, 'ATM': 20000, 'BARD1': 20000,
@@ -20,11 +29,16 @@ if len(sys.argv) >= 3:
     gff = sys.argv[1]
     whole_genes = sys.argv[2]
 
+    # Initiate a list to store the list of genes
     gl = list()
     gene_dict = dict()
     with open(gff, 'r') as resource, open(whole_genes, 'r') as gene_list:
+
+        # Load the list genes from the file.
         for line_split in gene_list:
             gl.append(line_split.strip())
+
+        # Loop through the gff file
         for gff_line in resource:
             if not gff_line.startswith("#"):
                 gff_line = gff_line.strip().split('\t')
@@ -38,14 +52,17 @@ if len(sys.argv) >= 3:
                             else:
                                 fr = 0
                             if chromosome not in gene_dict:
-                                gene_dict[chromosome] = {gene_name: (int(gff_line[3])-fr, int(gff_line[4])+fr)}
+                                gene_dict[chromosome] = {gene_name: (
+                                    int(gff_line[3]) - fr,
+                                    int(gff_line[4]) + fr)}
                                 break
 
                             else:
-                                gene_dict[chromosome][gene_name] = (int(gff_line[3])-fr, int(gff_line[4])+fr)
+                                gene_dict[chromosome][gene_name] = (
+                                    int(gff_line[3]) - fr,
+                                    int(gff_line[4]) + fr)
                                 break
 
-########################################################################################################################
     # Create the new directories
     list_of_files = os.listdir("Annotation/Edited")
     for file in list_of_files.copy():
@@ -64,22 +81,23 @@ if len(sys.argv) >= 3:
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-########################################################################################################################
     # Start a counter for filters
     filters = {"QD2S": 0, "MQ40": 0, "FS60": 0,
                "SOR4": 0, "MQRS-12.5": 0, "RPRS-8": 0,
                "QD2I": 0, "FS200": 0, "SOR10": 0, "RPRS-20": 0
                }
 
-########################################################################################################################
     # Open count files and create the headers
-    with open('type_comparison.txt', 'w') as out, open("known_on_target_fail.txt", 'w') as k_on_fail, \
-            open("known_off_target_fail.txt", "w") as k_off_fail, open("novel_on_target_fail.txt", 'w') as n_on_fail, \
-            open("novel_off_target_fail.txt", "w") as n_off_fail:
+    with open('type_comparison.txt', 'w') as out, open(
+            "known_on_target_fail.txt", 'w') as k_on_fail, open(
+            "known_off_target_fail.txt", "w") as k_off_fail, open(
+            "novel_on_target_fail.txt", 'w') as n_on_fail, open(
+            "novel_off_target_fail.txt", "w") as n_off_fail:
 
         # Header for type_comparison.txt
-        out.write("Sample\tKnownOnTargetPass\tKnownOnTargetFail\tKnownOffTargetPass\tKnownOffTargetFail\t"
-                  "NovelOnTargetPass\tNovelOnTargetFail\tNovelOffTargetPass\tNovelOffTargetFail")
+        out.write("Sample\tKnownOnTargetPass\tKnownOnTargetFail\t"
+                  "KnownOffTargetPass\tKnownOffTargetFail\tNovelOnTargetPass\t"
+                  "NovelOnTargetFail\tNovelOffTargetPass\tNovelOffTargetFail")
 
         # Header for fail output files
         k_on_fail.write("Sample")
@@ -101,18 +119,27 @@ if len(sys.argv) >= 3:
             k_off_fail_filters = filters.copy()
             n_on_fail_filters = filters.copy()
             n_off_fail_filters = filters.copy()
-            counter = {"k_on_pass": 0, "k_on_fail": 0, "k_off_pass": 0, "k_off_fail": 0,
-                       "n_on_pass": 0, "n_on_fail": 0, "n_off_pass": 0, "n_off_fail": 0}
+            counter = {"k_on_pass": 0, "k_on_fail": 0, "k_off_pass": 0,
+                       "k_off_fail": 0, "n_on_pass": 0, "n_on_fail": 0,
+                       "n_off_pass": 0, "n_off_fail": 0}
 
-            with open('Annotation/Edited/'+file, 'r') as vcf, \
-                    open('Annotation/Edited/KnownOnFail/k_on_fail_'+file, 'w') as k_on_fail_out, \
-                    open('Annotation/Edited/KnownOffFail/k_off_fail_'+file, 'w') as k_off_fail_out, \
-                    open('Annotation/Edited/KnownOnPass/k_on_pass_'+file, 'w') as k_on_pass_out, \
-                    open('Annotation/Edited/KnownOffPass/k_off_pass_'+file, 'w') as k_off_pass_out, \
-                    open('Annotation/Edited/NovelOnFail/n_on_fail_'+file, 'w') as n_on_fail_out, \
-                    open('Annotation/Edited/NovelOffFail/n_off_fail_'+file, 'w') as n_off_fail_out, \
-                    open('Annotation/Edited/NovelOnPass/n_on_pass_'+file, 'w') as n_on_pass_out, \
-                    open('Annotation/Edited/NovelOffPass/n_off_pass_'+file, 'w') as n_off_pass_out:
+            with open('Annotation/Edited/' + file, 'r') as vcf, open(
+                'Annotation/Edited/KnownOnFail/k_on_fail_' + file,
+                    'w') as k_on_fail_out, open(
+                'Annotation/Edited/KnownOffFail/k_off_fail_' + file,
+                    'w') as k_off_fail_out, open(
+                'Annotation/Edited/KnownOnPass/k_on_pass_' + file,
+                    'w') as k_on_pass_out, open(
+                'Annotation/Edited/KnownOffPass/k_off_pass_' + file,
+                    'w') as k_off_pass_out, open(
+                'Annotation/Edited/NovelOnFail/n_on_fail_' + file,
+                    'w') as n_on_fail_out, open(
+                'Annotation/Edited/NovelOffFail/n_off_fail_' + file,
+                    'w') as n_off_fail_out, open(
+                'Annotation/Edited/NovelOnPass/n_on_pass_' + file,
+                    'w') as n_on_pass_out, open(
+                'Annotation/Edited/NovelOffPass/n_off_pass_' + file,
+                    'w') as n_off_pass_out:
 
                 for line in vcf:
                     # Get the information we need of each line.
