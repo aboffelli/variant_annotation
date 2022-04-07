@@ -85,7 +85,7 @@ for file in test_files:
                 # Transform to the respective genotype number.
                 if af >= 0.8:
                     vcf_value = 2
-                elif 0.2 < af < 0.8:
+                elif 0.2 <= af < 0.8:
                     vcf_value = 1
                 else:
                     vcf_value = 0
