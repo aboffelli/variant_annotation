@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Title:
+Title: Plink input files.
 
 Description: Script that creates two input files for PLINK.
     One tab delimited MAP file containing the information for each variant, i.e.
