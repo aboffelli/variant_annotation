@@ -109,7 +109,7 @@ swea_af_perc = {}
 # File count that will be printed in the screen.
 file_count = 1
 for file in list_of_files:
-    print(file_count, end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r')
     # Get the sample name from the file name using regex.
     sample_name = re.search(r'filtered_(\S+)_VEP', file).group(1)
 

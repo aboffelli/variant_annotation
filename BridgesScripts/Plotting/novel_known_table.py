@@ -46,7 +46,7 @@ af_dict = {"Control": {'Known': [],
            }
 file_count = 1
 for file in list_of_files:
-    print(file_count)
+    print(f"{file_count}/{len(list_of_files)}", end='\r')
 
     # Define if it is a Control or Case file based on the path.
     file_type = file.split('/')[2]

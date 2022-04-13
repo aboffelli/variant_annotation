@@ -169,7 +169,7 @@ synonymous_variants = {}
 file_count = 1
 for file in list_of_files:
     # Print the file number to the screen.
-    print(file_count, end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r')
 
     # Get the sample name from the file name.
     sample_name = re.search(r'vep_(\S+)\.raw', file).group(1)

@@ -120,9 +120,9 @@ for file in list_of_files.copy():
 # The novel variant will be named as varN. Every time a novel variant is found
 # we add 1 to this variable.
 var_num = 1
-file_num = 1
+file_count = 1
 for file in list_of_files:
-    print(file_num, end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r')
     # Get the phenotype, sample name and sex for the ped file.
     # The phenotype is Case or Control, for now.
     if file.split('/')[1] == "Controls":
@@ -197,7 +197,7 @@ for file in list_of_files:
 
                 else:   # If qc_check returned False.
                     removed_variants += 1
-    file_num += 1
+    file_count += 1
 print("Done!")
 
 with open("number_samples.txt", "w") as out:

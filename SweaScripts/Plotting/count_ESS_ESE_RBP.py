@@ -119,9 +119,9 @@ ess_count = {'alter': {'known': 0, 'novel': 0},
              'remove': {'known': 0, 'novel': 0}
              }
 
-count = 1
+file_count = 1
 for file in list_of_files:
-    print(count, end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r')
     with open(files_directory + file, 'r') as vcf_file:
         for line in vcf_file:
             if not line.startswith("#"):
@@ -137,7 +137,7 @@ for file in list_of_files:
                     pos_set.add(position)
                     es_counter(csq, existence)
                     rbp_info(csq, position, existence)
-    count += 1
+    file_count += 1
 print('Files are over')
 
 

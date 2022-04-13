@@ -67,7 +67,7 @@ bridges_af_perc = {'Controls': {}, 'Cases': {}}
 # File count that will be printed in the screen.
 file_count = 1
 for file in list_of_files:
-    print(file_count, end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r')
 
     # Retrieve the type (Controls/Cases) from the file path.
     file_type = file.split('/')[2]

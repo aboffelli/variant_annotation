@@ -71,7 +71,7 @@ old_filters = {
 file_count = 1
 for file in list_of_files:
     # Print the file number to the screen.
-    print(file_count, end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r')
     # Change the path and file names for the output file.
     new_file = re.sub(r'ClinVar(\S*/)(clinvar)',
                       r'FilteredClinVar\1filtered_\2', file)

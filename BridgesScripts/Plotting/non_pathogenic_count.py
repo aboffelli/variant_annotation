@@ -52,7 +52,7 @@ for file in list_of_files.copy():
 
 file_count = 1
 for file in list_of_files:
-    print(file_count)
+    print(f"{file_count}/{len(list_of_files)}", end='\r')
     sample_name = re.search(r'filtered_(\S+)_VEP', file).group(1)
     samples_dictionary[sample_name] = identify_variant(file)
     file_count += 1
