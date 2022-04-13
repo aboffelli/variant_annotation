@@ -121,7 +121,7 @@ ess_count = {'alter': {'known': 0, 'novel': 0},
 
 file_count = 1
 for file in list_of_files:
-    print(f"{file_count}/{len(list_of_files)}", end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
     with open(files_directory + file, 'r') as vcf_file:
         for line in vcf_file:
             if not line.startswith("#"):

@@ -32,7 +32,7 @@ for file in list_of_files.copy():
 
 file_count = 1
 for file in list_of_files:
-    print(f"{file_count}/{len(list_of_files)}", end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
 
     # For each file of the list, create an edited file.
     with open("Annotation/"+file, 'r') as original, open(

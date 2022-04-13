@@ -82,7 +82,7 @@ for file in list_of_files.copy():
 
 file_count = 1
 for file in list_of_files:
-    print(f"{file_count}/{len(list_of_files)}", end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
     sample_name = re.search(r'filtered_(\S+)_VEP', file).group(1)
     with open(files_directory + file, 'r') as vcf_file:
         for vcf_line in vcf_file:

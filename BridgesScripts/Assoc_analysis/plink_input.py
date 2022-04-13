@@ -111,7 +111,7 @@ with open("/home/ar7343bo-s/Resources/BRIDGES_fluidigm_juno_panel_primers.txt",
 print("Done!")
 
 # Prepare the VCF files that will be used.
-print("\nReading the files...")
+print("\nReading files...")
 list_of_files = glob.glob("./**/*.vcf", recursive=True)
 for file in list_of_files.copy():
     if '.vcf' not in file:
@@ -122,7 +122,7 @@ for file in list_of_files.copy():
 var_num = 1
 file_count = 1
 for file in list_of_files:
-    print(f"{file_count}/{len(list_of_files)}", end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
     # Get the phenotype, sample name and sex for the ped file.
     # The phenotype is Case or Control, for now.
     if file.split('/')[1] == "Controls":
