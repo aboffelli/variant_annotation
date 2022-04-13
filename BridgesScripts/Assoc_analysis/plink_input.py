@@ -204,7 +204,7 @@ with open("number_samples.txt", "w") as out:
     for variant in variant_samples:
         print(f"{variant}\t{len(variant_samples[variant])}", file=out)
 
-print("\nPreparing the output files...")
+print("\nPreparing the map file...")
 # For printing the map file, first prepare the lines into a list.
 map_list = []
 
@@ -227,12 +227,15 @@ for rs in map_dict:
 # the file.
 map_list = sorted(map_list, key=lambda x: (int(x.split('\t')[0]),
                                            int(x.split('\t')[2])))
+print("Done!")
 
+print("\nWriting the .map file...")
 with open(f"bridges_filt{cut_off}.map", "w") as outfile:
     for item in map_list:
         print(item, file=outfile)
+print("Done!")
 
-
+print("\nPreparing the .ped file...")
 ped_dict = {}
 # Now we can use the map_list to get the same order of variants in both files.
 for sample in sample_dict:
@@ -254,7 +257,9 @@ for sample in sample_dict:
         # homozygous reference, so we append the reference base twice.
         else:
             ped_dict[sample].extend(variant_dict[var][0] * 2)
+print("Done!")
 
+print("\nWriting the .ped file...")
 # Write all the information in the ped file.
 with open(f"bridges_filt{cut_off}.ped", 'w') as outfile:
     for sample in ped_dict:
