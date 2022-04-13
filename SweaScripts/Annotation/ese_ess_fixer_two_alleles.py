@@ -117,7 +117,7 @@ for file in list_of_files.copy():
 
 file_count = 1
 for file in list_of_files:
-    print(file_count)
+    print(file_count, end='\r')
 
     with open(files_directory + file, 'r') as vcf, open('FixedESEESS/'+file,
                                                         'w') as outfile:

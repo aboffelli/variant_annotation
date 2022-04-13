@@ -88,8 +88,9 @@ with open(ese_file) as ese, open(ess_file) as ess:
     for line in ess:
         ess_set.add(line.strip())
 
-
+file_count = 1
 for file in list_of_files:
+    print(file_count, end='\r')
     with open(files_directory + file) as vcf, open(directory + 'custom_' + file,
                                                    'w') as out_vcf:
         for line in vcf:
@@ -279,5 +280,7 @@ for file in list_of_files:
                 line = '\t'.join(split_line)
                 # Print the line in the file
                 print(line, file=out_vcf)
+
+    file_count += 1
 
 print('Run time: {:.2f} seconds'.format(time.time() - start_time))

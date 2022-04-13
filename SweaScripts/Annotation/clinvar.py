@@ -55,7 +55,7 @@ new_info = '##INFO=<ID=ClinVar,Number=.,Type=String,Description=' \
 # File count that will be printed in the screen.
 file_count = 1
 for file in list_of_files:
-    print(file_count)
+    print(file_count, end='\r')
 
     with open(files_directory + file, 'r') as vcf, \
             open('ClinVar/clinvar_' + file, 'w') as outvcf:

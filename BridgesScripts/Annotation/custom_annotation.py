@@ -82,7 +82,7 @@ with open(ese_file) as ese, open(ess_file) as ess:
 
 file_count = 1
 for file in list_of_files:
-    print(file_count)
+    print(file_count, end='\r')
     new_file = re.sub(r'EncodeAnnotation(\S*/)(encode)',
                       r'CustomAnnotation\1custom_\2', file)
 

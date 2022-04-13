@@ -18,6 +18,7 @@ GitHub: https://github.com/aboffelli/variant_annotation
 import time
 import re
 import glob
+import sys
 
 start_time = time.time()
 
@@ -119,7 +120,9 @@ for file in list_of_files.copy():
 # The novel variant will be named as varN. Every time a novel variant is found
 # we add 1 to this variable.
 var_num = 1
+file_num = 1
 for file in list_of_files:
+    print(file_num, end='\r')
     # Get the phenotype, sample name and sex for the ped file.
     # The phenotype is Case or Control, for now.
     if file.split('/')[1] == "Controls":
@@ -194,6 +197,7 @@ for file in list_of_files:
 
                 else:   # If qc_check returned False.
                     removed_variants += 1
+    file_num += 1
 print("Done!")
 
 with open("number_samples.txt", "w") as out:
@@ -205,7 +209,8 @@ print("\nPreparing the output files...")
 map_list = []
 
 # Set a cut off value for the minimum number of patients with the variant.
-cut_off = 100
+cut_off = int(sys.argv[1])
+print(f"Excluding variants that are present in less then {cut_off} samples")
 
 # Append the map lines already in the right format if the number of samples
 # is enough.
@@ -223,7 +228,7 @@ for rs in map_dict:
 map_list = sorted(map_list, key=lambda x: (int(x.split('\t')[0]),
                                            int(x.split('\t')[2])))
 
-with open("bridges.map", "w") as outfile:
+with open(f"bridges_filt{cut_off}.map", "w") as outfile:
     for item in map_list:
         print(item, file=outfile)
 
@@ -251,7 +256,7 @@ for sample in sample_dict:
             ped_dict[sample].extend(variant_dict[var][0] * 2)
 
 # Write all the information in the ped file.
-with open("bridges.ped", 'w') as outfile:
+with open(f"bridges_filt{cut_off}.ped", 'w') as outfile:
     for sample in ped_dict:
         line = '\t'.join(ped_dict[sample])
         print(f"{sample}\t{line}", file=outfile)

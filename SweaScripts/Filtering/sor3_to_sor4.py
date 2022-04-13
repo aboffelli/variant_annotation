@@ -30,7 +30,10 @@ for file in list_of_files.copy():
     if '.vcf' not in file:
         list_of_files.remove(file)
 
+file_count = 1
 for file in list_of_files:
+    print(file_count, end='\r')
+
     # For each file of the list, create an edited file.
     with open("Annotation/"+file, 'r') as original, open(
             'Annotation/Edited/edited_' + file, 'w') as edited:
@@ -71,6 +74,8 @@ for file in list_of_files:
                     line = '##FILTER=<ID=SOR4,Description="SOR > 4.0">\n'
                 # write all the header lines in the edited file.
                 edited.write(line)
+
+    file_count += 1
 
 # Print the run time.
 print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

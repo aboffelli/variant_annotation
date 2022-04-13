@@ -59,7 +59,7 @@ new_info = '##INFO=<ID=ClinVar,Number=.,Type=String,Description=' \
 file_count = 1
 for file in list_of_files:
     # Print the file number to the screen.
-    print(file_count)
+    print(file_count, end='\r')
     # Change the path and file names for the output file
     new_file = re.sub(r'CustomAnnotation(\S*/)(custom)',
                       r'ClinVar\1clinvar_\2', file)
