@@ -14,14 +14,15 @@ GitHub: https://github.com/aboffelli/
 import time
 import glob
 import re
+import sys
 
 start_time = time.time()
 
-# # Prepare the vcf files that will be used.
-list_of_files = glob.glob("raidset/ClinVar/**/*.vcf", recursive=True)
+# Prepare the vcf files that will be used.
+list_of_files = glob.glob(f"{sys.argv[1]}/**/*.vcf", recursive=True)
 for file in list_of_files.copy():
-    # Remove any files that are not the last version of the vcfs.
-    if '/clinvar' not in file:
+    # Remove any files that are not vcfs.
+    if '.vcf' not in file:
         list_of_files.remove(file)
 
 # Test data
@@ -45,11 +46,12 @@ af_dict = {"Control": {'Known': [],
                      "Pathogenic": []}
            }
 file_count = 1
+print("Reading files")
 for file in list_of_files:
-    print(f"{file_count}/{len(list_of_files)}", end='\r')
+    print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
 
     # Define if it is a Control or Case file based on the path.
-    file_type = file.split('/')[2]
+    file_type = file.split('/')[1]
     with open(file, 'r') as vcf:
         for vcfline in vcf:
             if not vcfline.startswith('#'):
@@ -85,6 +87,8 @@ for file in list_of_files:
                 af_dict[file_type][var].append(allele_fraction)
 
     file_count += 1
+
+print("Done!")
 
 with open('novel_known_count.txt',
           'w') as outtable:
