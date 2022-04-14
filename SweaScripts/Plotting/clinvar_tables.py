@@ -131,4 +131,4 @@ with open(out_dir+'synonymous_variants.txt', 'w') as outfile:
     for key in synonymous_variants:
         print(f'{key}\t{synonymous_variants[key]}', file=outfile)
 
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

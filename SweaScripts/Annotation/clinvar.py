@@ -108,4 +108,4 @@ for file in list_of_files:
         file_count += 1
 
 # Print the run time in the screen.
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

@@ -291,4 +291,4 @@ with open('qc_file.txt', 'w') as qc_file:
         print(pos, qc[pos], file=qc_file)
 
 # Print the run time.
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

@@ -32,15 +32,15 @@ for file in list_of_files.copy():
 
 # Create a dictionary to store all the information that we need, we use sets to
 # keep unique variants.
-var_dict = {"Control": {'Known': set(),
-                        "Novel": set()},
+var_dict = {"Controls": {'Known': set(),
+                         "Novel": set()},
             "Cases": {"Known": set(),
                       "Novel": set()}
             }
 
-af_dict = {"Control": {'Known': [],
-                       "Novel": [],
-                       "Pathogenic": []},
+af_dict = {"Controls": {'Known': [],
+                        "Novel": [],
+                        "Pathogenic": []},
            "Cases": {"Known": [],
                      "Novel": [],
                      "Pathogenic": []}
@@ -88,7 +88,7 @@ for file in list_of_files:
 
     file_count += 1
 
-print("Done!")
+print("\nDone!")
 
 with open('novel_known_count.txt',
           'w') as outtable:
@@ -105,4 +105,4 @@ with open('table.txt',
                 print(f'''{file_type}\t{var_type}\t{af}''', file=outtable)
 
 # Print the run time.
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

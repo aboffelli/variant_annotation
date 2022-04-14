@@ -203,4 +203,4 @@ with open('bridges_synonymous_table.txt', 'w') as outfile:
 #         print(gene_name, file=gene_list)
 
 # Print the run time.
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

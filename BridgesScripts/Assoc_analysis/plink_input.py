@@ -87,6 +87,9 @@ variant_dict = {}
 # Dictionary to save the number of samples that containing each variant.
 variant_samples = {}
 
+# Create a dictionary for novel variants
+novel_variants_id = {}
+
 # Variables to show the number of variants removed in the end.
 fail_count = 0
 indel_count = 0
@@ -166,8 +169,11 @@ for file in list_of_files:
                     # Assign a name for the variant if it is a novel variant.
                     # In this case we're using varN.
                     if not rs:
-                        rs = 'var' + str(var_num)
-                        var_num += 1
+                        chrom_pos = chrom + ':' + position
+                        if chrom_pos not in novel_variants_id:
+                            novel_variants_id[chrom_pos] = 'var' + str(var_num)
+                            var_num += 1
+                        rs = novel_variants_id[chrom_pos]
 
                     # Save the map info in the map dictionary.
                     if rs not in map_dict:
@@ -198,7 +204,7 @@ for file in list_of_files:
                 else:   # If qc_check returned False.
                     removed_variants += 1
     file_count += 1
-print("Done!")
+print("\nDone!")
 
 with open("number_samples.txt", "w") as out:
     for variant in variant_samples:
@@ -276,4 +282,4 @@ print(f"{off_target_count} variants were off the primer targets.")
 print(f"{n_samples} variants were found only in less than {cut_off} samples.")
 
 # Print the run time.
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

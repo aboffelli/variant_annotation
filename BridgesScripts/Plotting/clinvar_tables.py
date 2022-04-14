@@ -265,4 +265,4 @@ with open(out_dir+'synonymous_variants.txt', 'w') as outfile:
             print(f'{history}\t{key}\t{synonymous_variants[history][key]}',
                   file=outfile)
 
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

@@ -16,7 +16,6 @@
 ##  
 ## ----------------------------------------------------------------------------- 
 
-library(ggplot2)
 library(ggrepel)
 library(tidyverse)
 library(gridExtra)
@@ -40,8 +39,11 @@ pie_chart <- function(file_table, plot_name) {
 
 
 
-known_novel <- read.table('ClinVar/novel_known_count.txt', sep='\t')
-filt_known_novel <- read.table('FilteredClinVar/filtered_novel_known_count.txt', sep='\t')
+known_novel <- read.table('ClinVar/novel_known_count.txt', sep='\t') %>% 
+    arrange(V1)
+filt_known_novel <- read.table('FilteredClinVar/novel_known_count.txt', 
+                               sep='\t') %>% 
+    arrange(V1)
 
 known_novel <- transform(known_novel, Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 2)*100))
 
@@ -71,14 +73,15 @@ filt_histogram <- read.table('FilteredClinVar/table.txt', sep = '\t')
 density <- ggplot(data = histogram, aes(x=V3, fill=V2)) +
     stat_density() +
     facet_wrap(~V1, ncol = 1) +
-    labs(title='Allele Fraction density', x="Allele fraction") +
+    labs(title='Allele Fraction density', x="Allele fraction", y="Density") +
     scale_fill_discrete(name="Variant type") +
     theme_bw()
 
 filt_density <- ggplot(data = filt_histogram, aes(x=V3, fill=V2)) +
     stat_density() +
     facet_wrap(~V1, ncol = 1) +
-    labs(title='Allele Fraction density after filtration', x="Allele fraction") +
+    labs(title='Allele Fraction density after filtration', x="Allele fraction",
+         y="Density")+
     scale_fill_discrete(name="Variant type") +
     theme_bw()
 

@@ -63,4 +63,4 @@ with open('non_patho_other_variants.txt', 'w') as outfile:
             var_type = samples_dictionary[sample][variant]
             print(f'{sample}\t{variant}\t{var_type}', file=outfile)
 
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))

@@ -183,4 +183,4 @@ for file in list_of_files:
 
 
 # Print the run time.
-print('Run time: {:.2f} seconds'.format(time.time() - start_time))
+print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))
