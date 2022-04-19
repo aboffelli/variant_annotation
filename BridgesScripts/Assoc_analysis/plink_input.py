@@ -97,6 +97,9 @@ off_target_count = 0
 removed_variants = 0
 n_samples = 0
 
+# Number to exclude variants based on the number of samples.
+cut_off = int(sys.argv[1])
+
 # Load the primer positions from the file.
 print('Loading the primer positions...')
 with open("/home/ar7343bo-s/Resources/BRIDGES_fluidigm_juno_panel_primers.txt",
@@ -215,7 +218,6 @@ print("\nPreparing the map file...")
 map_list = []
 
 # Set a cut off value for the minimum number of patients with the variant.
-cut_off = int(sys.argv[1])
 print(f"Excluding variants that are present in less then {cut_off} samples")
 
 # Append the map lines already in the right format if the number of samples
