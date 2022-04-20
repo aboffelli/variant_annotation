@@ -45,10 +45,10 @@ bar_plot <- function(df, name, type='stack') {
 }
 
 
-setwd("C:/Users/Arthu/Box/Notes/Tables/VariantDistribution")
+setwd("~/Box/Notes/Tables/SWEA/VariantDistribution")
 
-known = read.table('known_variant_distribution.txt', sep='\t')
-novel = read.table('novel_variant_distribution.txt', sep='\t')
+known = read.table('known_variant_distribution_SWEA.txt', sep='\t')
+novel = read.table('novel_variant_distribution_SWEA.txt', sep='\t')
 known$V1 <- paste(known$V1, ' (', known$V2, ')', sep='')
 novel$V1 <- paste(novel$V1, ' (', novel$V2, ')', sep='')
 
@@ -59,8 +59,8 @@ novel_pie <- pie_chart(novel, "Novel Variants")
 
 to_save <- arrangeGrob(known_pie, novel_pie)
 # print(novel_pie)
-ggsave('Plots/pies.pdf', to_save)
-ggsave('Plots/pies.png', to_save)
+ggsave('Plots/pies_SWEA.pdf', to_save)
+ggsave('Plots/pies_SWEA.png', to_save)
 
 # Version without the introns
 known_pie_no_intron <- pie_chart(known[-c(10:11),], 'Known variants')
@@ -68,11 +68,11 @@ novel_pie_no_intron <- pie_chart(novel[-c(10:11),], "Novel Variants")
 
 to_save_no_intron <- to_save <- arrangeGrob(known_pie_no_intron,
                                             novel_pie_no_intron)
-ggsave('Plots/pies_no_intron.png', to_save_no_intron, width=17, height=18, unit='cm')
-ggsave('Plots/pies_no_intron.pdf', to_save_no_intron, width=17, height=18, unit='cm')
+ggsave('Plots/pies_no_intron_SWEA.png', to_save_no_intron, width=17, height=18, unit='cm')
+ggsave('Plots/pies_no_intron_SWEA.pdf', to_save_no_intron, width=17, height=18, unit='cm')
 
-gene_known <- read.table('genes_known_variant_distribution.txt', sep='\t')
-gene_novel <- read.table('genes_novel_variant_distribution.txt', sep='\t')
+gene_known <- read.table('genes_known_variant_distribution_SWEA.txt', sep='\t')
+gene_novel <- read.table('genes_novel_variant_distribution_SWEA.txt', sep='\t')
 # no_intron <- FALSE
 
 # # Without introns
@@ -105,9 +105,9 @@ gene_novel_no_intron <- gene_novel[!(gene_novel$V2=='intron') &
 # }
 # grid_save <- arrangeGrob(gene_k_plot0, gene_k_plot1, gene_k_plot2)
 # if (!no_intron) {
-#     ggsave('Plots/known_variants_distribution_by_gene.pdf', grid_save, limitsize = FALSE)
+#     ggsave('Plots/known_variants_distribution_by_gene_SWEA.pdf', grid_save, limitsize = FALSE)
 # } else {
-#     ggsave('Plots/known_variants_distribution_by_gene_no_intron.pdf', grid_save, limitsize = FALSE)
+#     ggsave('Plots/known_variants_distribution_by_gene_no_intron_SWEA.pdf', grid_save, limitsize = FALSE)
 # }
 # 
 # x <- 1
@@ -126,9 +126,9 @@ gene_novel_no_intron <- gene_novel[!(gene_novel$V2=='intron') &
 # 
 # grid_save <- arrangeGrob(gene_n_plot0, gene_n_plot1, gene_n_plot2)
 # if (!no_intron) {
-#     ggsave('Plots/novel_variants_distribution_by_gene.pdf', grid_save, limitsize = FALSE)
+#     ggsave('Plots/novel_variants_distribution_by_gene_SWEA.pdf', grid_save, limitsize = FALSE)
 # } else {
-#     ggsave('Plots/novel_variants_distribution_by_gene_no_intron.pdf', grid_save, limitsize = FALSE)
+#     ggsave('Plots/novel_variants_distribution_by_gene_no_intron_SWEA.pdf', grid_save, limitsize = FALSE)
 # }
 # 
 
@@ -145,15 +145,15 @@ p_gene_k_plot_no_intron <- bar_plot(gene_known_no_intron, 'Variants by gene (Kno
 p_gene_n_plot_no_intron <- bar_plot(gene_novel_no_intron, 'Variants by gene (Novel variants) - No introns', 'fill')
 
 to_save <- arrangeGrob(count_gene_k_plot, count_gene_n_plot)
-ggsave('Plots/count_variant_distribution_by_gene.png', to_save, width=20, height=18, unit='cm')
-ggsave('Plots/count_variant_distribution_by_gene.pdf', to_save, width=20, height=18, unit='cm')
+ggsave('Plots/count_variant_distribution_by_gene_SWEA.png', to_save, width=20, height=18, unit='cm')
+ggsave('Plots/count_variant_distribution_by_gene_SWEA.pdf', to_save, width=20, height=18, unit='cm')
 to_save <- arrangeGrob(count_gene_k_plot_no_intron, count_gene_n_plot_no_intron)
-ggsave('Plots/count_variant_distribution_by_gene_no_intron.png', to_save, width=20, height=18, unit='cm')
-ggsave('Plots/count_variant_distribution_by_gene_no_intron.pdf', to_save, width=20, height=18, unit='cm')
+ggsave('Plots/count_variant_distribution_by_gene_no_intron_SWEA.png', to_save, width=20, height=18, unit='cm')
+ggsave('Plots/count_variant_distribution_by_gene_no_intron_SWEA.pdf', to_save, width=20, height=18, unit='cm')
 
 to_save <- arrangeGrob(p_gene_k_plot, p_gene_n_plot)
-ggsave('Plots/percentage_variant_distribution_by_gene.png', to_save, width=20, height=18, unit='cm')
-ggsave('Plots/percentage_variant_distribution_by_gene.pdf', to_save, width=20, height=18, unit='cm')
+ggsave('Plots/percentage_variant_distribution_by_gene_SWEA.png', to_save, width=20, height=18, unit='cm')
+ggsave('Plots/percentage_variant_distribution_by_gene_SWEA.pdf', to_save, width=20, height=18, unit='cm')
 to_save <- arrangeGrob(p_gene_k_plot_no_intron, p_gene_n_plot_no_intron)
-ggsave('Plots/percentage_variant_distribution_by_gene_no_intron.png', to_save, width=20, height=18, unit='cm')
-ggsave('Plots/percentage_variant_distribution_by_gene_no_intron.pdf', to_save, width=20, height=18, unit='cm')
+ggsave('Plots/percentage_variant_distribution_by_gene_no_intron_SWEA.png', to_save, width=20, height=18, unit='cm')
+ggsave('Plots/percentage_variant_distribution_by_gene_no_intron_SWEA.pdf', to_save, width=20, height=18, unit='cm')

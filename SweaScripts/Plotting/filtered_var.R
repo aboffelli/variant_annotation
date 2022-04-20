@@ -5,16 +5,16 @@ library(plotly)
 
 
 # Mac
-setwd("~/Box/Notes")
+setwd("~/Box/Notes/Tables/SWEA/")
 
 # Windows
 # setwd("C:\\Users\\Arthu\\Box\\Notes")
 
 # Load tables
-t_table <- as.data.frame(read.table('hf-ml_comparison.txt', header=T, sep="\t"))
+t_table <- as.data.frame(read.table('hf-ml_comparison_SWEA.txt', header=T, sep="\t"))
 t_table$Filtering_Type <- factor(t_table$Filtering_Type)
 
-f_table <- as.data.frame(read.table('filters_tab.txt', header=T, sep="\t"))
+f_table <- as.data.frame(read.table('filters_tab_SWEA.txt', header=T, sep="\t"))
 f_table <- f_table[,-1]
 
 
@@ -38,8 +38,8 @@ stackbar <- ggplot(data=melt(p_table), aes(y=value, x=Filter, fill=variable)) +
         legend.text=element_text(size=15))
     
 print(stackbar)
-ggsave("stackbar.png", plot=stackbar)
-ggsave("stackbar.pdf", plot=stackbar)
+ggsave("Plots/stackbar_SWEA.png", plot=stackbar)
+ggsave("Plots/stackbar_SWEA.pdf", plot=stackbar)
 
 
 # Box plot with the number of variables for each approach
@@ -55,8 +55,8 @@ total_box <- ggplot(data=melt(t_table), aes(x=Filtering_Type, y=value, fill=vari
         legend.text=element_text(size=15))
 
 print(total_box)
-ggsave("total_box.png", plot=total_box)
-ggsave("total_box.pdf", plot=total_box)
+ggsave("Plots/total_box_SWEA.png", plot=total_box)
+ggsave("Plots/total_box_SWEA.pdf", plot=total_box)
 
 # Plot for each filter in the Hard filtering approach
 
@@ -68,8 +68,8 @@ filter_plot <- ggplot(data=melt(f_table), aes(x=variable, y=value)) +
     scale_fill_manual(values=c("aquamarine", "coral", "cadetblue1", "lightpink1", "darkolivegreen1", "lightgoldenrod1", "cornflowerblue", "blueviolet", "indianred1", "lightskyblue3" ))
 
 print(filter_plot)
-ggsave("filter_plot.png", plot=filter_plot)
-ggsave("filter_plot.pdf", plot=filter_plot)
+ggsave("Plots/filter_plot_SWEA.png", plot=filter_plot)
+ggsave("Plots/filter_plot_SWEA.pdf", plot=filter_plot)
     
 no_jitter <- ggplot(data=melt(f_table), aes(x=variable, y=value)) +
     geom_boxplot(aes(fill=variable), alpha=0.7) +
@@ -78,8 +78,8 @@ no_jitter <- ggplot(data=melt(f_table), aes(x=variable, y=value)) +
     scale_fill_manual(values=c("aquamarine", "coral", "cadetblue1", "lightpink1", "darkolivegreen1", "lightgoldenrod1", "cornflowerblue", "blueviolet", "indianred1", "lightskyblue3" ))
 
 print(no_jitter)
-ggsave("no_jitter.png", plot=no_jitter)
-ggsave("no_jitter.pdf", plot=no_jitter)
+ggsave("Plots/no_jitter_SWEA.png", plot=no_jitter)
+ggsave("Plots/no_jitter_SWEA.pdf", plot=no_jitter)
 
 # Interactive plots
 # ggplotly(total_box)

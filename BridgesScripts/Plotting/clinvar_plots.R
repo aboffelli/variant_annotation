@@ -39,7 +39,7 @@ pie_chart <- function(file_table, plot_name) {
 }
 
 # setwd("C:/Users/Arthu/Box/Notes/Tables/ClinvarTables")
-setwd("/Users/student/Box/Notes/TestData/Bridges/FilteredClinVarTables")
+setwd("/Users/student/Box/Notes/Tables/BRIDGES/FilteredClinVarTables")
 
 # sample_type <- "Controls"
 # fam_hist_num <- 3698
@@ -49,7 +49,8 @@ sample_type <- "Cases"
 fam_hist_num <- 11518
 total_num <- 60239 - fam_hist_num
 
-pathogenic <- read.table(paste0(sample_type, '/pathogenic_count.txt'), 
+pathogenic <- read.table(paste0(sample_type, 
+                                '/Tables/pathogenic_count_BRIDGES.txt'), 
                          sep = '\t')[,-2]
 colnames(pathogenic)[2] <- 'Type'
 pathogenic <- pathogenic %>% 
@@ -76,14 +77,15 @@ pathogenic_plot <- pie_chart(pathogenic, paste("Pathogenic Percentage -",
 
 print(pathogenic_plot)
 
-ggsave(paste0(sample_type, '/pathogenic_percentage.pdf'), 
+ggsave(paste0(sample_type, '/Plots/pathogenic_percentage_BRIDGES.pdf'), 
        pathogenic_plot, width=30, height=20, units='cm')
-ggsave(paste0(sample_type, '/pathogenic_percentage.png'), 
+ggsave(paste0(sample_type, '/Plots/pathogenic_percentage_BRIDGES.png'), 
        pathogenic_plot, width=30,height=20, units='cm')
 
 ################################################################################
 
-clinical_type <- read.table(paste0(sample_type, '/clinical_type.txt'), 
+clinical_type <- read.table(paste0(sample_type, 
+                                   '/Tables/clinical_type_BRIDGES.txt'), 
                             sep = '\t')[,-2]
 colnames(clinical_type)[2] <- "Type"
 clinical_type <- clinical_type %>% 
@@ -109,15 +111,15 @@ clinical_type_plot <- pie_chart(clinical_type,
                                 paste('Clinical Type Percentage -',
                                                      sample_type))
 print(clinical_type_plot)
-ggsave(paste0(sample_type, '/clinical_type_percentage.pdf'), 
+ggsave(paste0(sample_type, '/Plots/clinical_type_percentage_BRIDGES.pdf'), 
        clinical_type_plot, width=30, height=20, units='cm')
-ggsave(paste0(sample_type, '/clinical_type_percentage.png'), 
+ggsave(paste0(sample_type, '/Plots/clinical_type_percentage_BRIDGES.png'), 
        clinical_type_plot, width=30, height=20, units='cm')
 
 ################################################################################
 
 most_common <- read.table(paste0(
-    sample_type,'/most_common_pathogenic_var.txt'), sep='\t')
+    sample_type,'/Tables/most_common_pathogenic_var_BRIDGES.txt'), sep='\t')
 
 most_common <- most_common %>% 
     mutate(Hist = if_else(V1 !="No_family_hist", "Family history", 
@@ -139,15 +141,15 @@ most_common_plot <- ggplot(data=most_common,
     facet_wrap(~Hist, ncol = 1) +
     theme()
 print(most_common_plot)
-ggsave(paste0(sample_type, '/most_common_genes_pathogenic_variant.pdf'), 
+ggsave(paste0(sample_type, '/Plots/most_common_genes_pathogenic_variant_BRIDGES.pdf'), 
        most_common_plot, width=35, height=20, units='cm')
-ggsave(paste0(sample_type, '/most_common_genes_pathogenic_variant.png'),
+ggsave(paste0(sample_type, '/Plots/most_common_genes_pathogenic_variant_BRIDGES.png'),
        most_common_plot, width=35, height=20, units='cm')
 
 ################################################################################
 
 samples_pathogenic <- read.table(paste0(
-    sample_type, '/samples_pathogenic.txt'), sep='\t')
+    sample_type, '/Tables/samples_pathogenic_BRIDGES.txt'), sep='\t')
 
 samples_pathogenic <- samples_pathogenic %>% 
     mutate(Hist = if_else(V1 !="No_family_hist", "Family history", 
@@ -163,7 +165,7 @@ samples_pathogenic <- as.data.frame(table(samples_pathogenic[,c(1,2,9)])) %>%
 
 # samples_pathogenic <- samples_pathogenic[order(samples_pathogenic$Freq),]
 # write.table(samples_pathogenic, 
-#             file=paste0(sample_type, '/number_of_pathogenic_var_by_sample.txt'),
+#             file=paste0(sample_type, '/number_of_pathogenic_var_by_sample_BRIDGES.txt'),
 #             sep='\t', row.names=F, col.names=F, quote=F)
 samples_pathogenic <- as.data.frame(table(samples_pathogenic$V1, 
                                           samples_pathogenic$Hist)) %>% 
@@ -196,9 +198,9 @@ samples_pathogenic_plot <- pie_chart(
     family_samples, paste("Type of family history with patogenic variants -",
                               sample_type))
 print(samples_pathogenic_plot)
-ggsave(paste0(sample_type, '/type_history_percentage.pdf'), 
+ggsave(paste0(sample_type, '/Plots/type_history_percentage_BRIDGES.pdf'), 
        samples_pathogenic_plot, width=30, height=20, units='cm')
-ggsave(paste0(sample_type, '/type_history_percentage.png'), 
+ggsave(paste0(sample_type, '/Plots/type_history_percentage_BRIDGES.png'), 
        samples_pathogenic_plot, width=30, height=20, units='cm') 
     
     

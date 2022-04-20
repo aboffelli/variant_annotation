@@ -20,11 +20,11 @@ library(ggplot2)
 library(gridExtra)
 options(scipen = 100)
 
-setwd("C:/Users/Arthu/Box/Notes/Tables/RscuConserv")
+setwd("~/Box/Notes/Tables/SWEA/RscuConserv")
 
-rscu_table <- read.table('rscu_table.txt', sep='\t')
+rscu_table <- read.table('rscu_table_SWEA.txt', sep='\t')
 rscu_table$V2 <- factor(rscu_table$V2)
-conserv_table <- read.table('conservation_table.txt', sep='\t', header=T)
+conserv_table <- read.table('conservation_table_SWEA.txt', sep='\t', header=T)
 conserv_table <- conserv_table[conserv_table$Consequence!='inframe_deletion/insertion',]
 conserv_table[c('Exist', 'Consequence')] <- lapply(
     conserv_table[c('Exist', 'Consequence')], factor)
@@ -41,7 +41,7 @@ rscu_hist <- ggplot(data=rscu_table, aes(x=V1, fill=V2)) +
     scale_color_discrete(name="Variant type") +
     theme_classic() +
     theme(text = element_text(size=20))
-ggsave("Plots/rscu_histogram.pdf", plot=rscu_hist, width=25, height = 20, 
+ggsave("Plots/rscu_histogram_SWEA.pdf", plot=rscu_hist, width=25, height = 20, 
        units = 'cm')
 
 rscu_violin <- ggplot(data=rscu_table, aes(y=V1, x=V2, fill=V2)) +
@@ -51,7 +51,7 @@ rscu_violin <- ggplot(data=rscu_table, aes(y=V1, x=V2, fill=V2)) +
     scale_fill_discrete(name='Variant type') +
     scale_x_discrete(labels=element_blank()) +
     theme(text = element_text(size=20))
-ggsave("Plots/rscu_violin.pdf", plot=rscu_violin, width=25, height = 20, 
+ggsave("Plots/rscu_violin_SWEA.pdf", plot=rscu_violin, width=25, height = 20, 
        units = 'cm')
 
 conserv_PhyloP <- ggplot(data=conserv_table, 
@@ -63,7 +63,7 @@ conserv_PhyloP <- ggplot(data=conserv_table,
     scale_fill_discrete(name='Variant type') +
     theme_classic() +
     theme(text = element_text(size=20))
-ggsave("Plots/conservation_phylop.pdf", plot = conserv_PhyloP, width=35, 
+ggsave("Plots/conservation_phylop_SWEA.pdf", plot = conserv_PhyloP, width=35, 
        height = 20, units = 'cm')
 
 conserv_GERP <- ggplot(data=conserv_table, 
@@ -75,5 +75,5 @@ conserv_GERP <- ggplot(data=conserv_table,
     scale_fill_discrete(name='Variant type') +
     theme_classic() +
     theme(text = element_text(size=20))
-ggsave("Plots/conservation_gerp.pdf", plot=conserv_GERP, width = 35, 
+ggsave("Plots/conservation_gerp_SWEA.pdf", plot=conserv_GERP, width = 35, 
        height = 20, units = 'cm')

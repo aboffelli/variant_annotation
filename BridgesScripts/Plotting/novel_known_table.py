@@ -46,7 +46,7 @@ af_dict = {"Controls": {'Known': [],
                      "Pathogenic": []}
            }
 file_count = 1
-print("Reading files")
+print("Reading files...")
 for file in list_of_files:
     print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
 
@@ -56,33 +56,43 @@ for file in list_of_files:
         for vcfline in vcf:
             if not vcfline.startswith('#'):
                 split_line = vcfline.split('\t')
+
+                # Exclude variants that did not pass the filters.
                 filt = split_line[6]
                 if filt != 'PASS':
                     continue
+
                 # Get the chromosome and position of the variant
                 pos = ':'.join(split_line[0:2])
 
                 # Isolate only the annotation info, using regex.
-                csq = re.search(r'CSQ=(\S+?),(\S+?)(;ClinVar|\s)', vcfline)
+                csq = re.search(r'CSQ=(\S+?),\S+?(;ClinVar|\s)', vcfline)
 
                 # The fixed csq contains information that are the same for all
                 # transcripts
                 fixed_csq = csq.group(1).split('|')
-                # Retrieve the dbSNP section
+
+                # Retrieve the dbSNP ID
                 known = fixed_csq[0].split('&')[0]
 
-                clinvar = csq.group(3)
-
+                # Set the type of variant (Known/Novel).
                 if not known:
                     var = 'Novel'
                 else:
                     var = "Known"
 
+                # Add the position to the dictionary in the respective file type
+                # and variant.
                 var_dict[file_type][var].add(pos)
 
+                # For the allele fraction table we want to see the pathogenic
+                # variants as well. So set the variant type to pathogenic
+                # accordingly.
                 if "Pathogenic" in vcfline or "Likely_pathogenic" in vcfline:
                     var = "Pathogenic"
 
+                # Get the allele fraction from the line and append it to the
+                # dictionary.
                 allele_fraction = re.search(r";AF=([^A-Z;]+)", vcfline).group(1)
                 af_dict[file_type][var].append(allele_fraction)
 
@@ -90,15 +100,13 @@ for file in list_of_files:
 
 print("\nDone!")
 
-with open('novel_known_count.txt',
-          'w') as outtable:
+with open('novel_known_count.txt', 'w') as outtable:
     for file_type in var_dict:
         for var_type in var_dict[file_type]:
             print(f'''{file_type}\t{var_type}\t{
             len(var_dict[file_type][var_type])}''', file=outtable)
 
-with open('table.txt',
-          'w') as outtable:
+with open('allele_fraction_density.txt', 'w') as outtable:
     for file_type in af_dict:
         for var_type in af_dict[file_type]:
             for af in af_dict[file_type][var_type]:

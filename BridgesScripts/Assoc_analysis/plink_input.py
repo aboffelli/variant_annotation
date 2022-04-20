@@ -100,6 +100,19 @@ n_samples = 0
 # Number to exclude variants based on the number of samples.
 cut_off = int(sys.argv[1])
 
+# Check if the family history is activated.
+try:
+    if sys.argv[2] == '--family':
+        fam_hist = True
+    else:
+        raise TypeError
+except IndexError:
+    fam_hist = False
+
+except TypeError:
+    print("Argument not allowed. Using all samples...")
+    fam_hist = False
+
 # Load the primer positions from the file.
 print('Loading the primer positions...')
 with open("/home/ar7343bo-s/Resources/BRIDGES_fluidigm_juno_panel_primers.txt",
@@ -115,6 +128,14 @@ with open("/home/ar7343bo-s/Resources/BRIDGES_fluidigm_juno_panel_primers.txt",
         # Save the starts and ends as tuples, so we can access them later.
         primer_positions[p_chrom].append((p_start, p_end))
 print("Done!")
+
+if fam_hist:
+    fam_hist_samples = set()
+    print("Loading cases samples with family history...")
+    with open("Cases/family_history_cases.txt", 'r') as family:
+        for line in family:
+            fam_hist_samples.add(line.strip())
+    print("Done!")
 
 # Prepare the VCF files that will be used.
 print("\nReading files...")
@@ -138,7 +159,9 @@ for file in list_of_files:
     sample_name = re.search(r"vep_(\S+)\.raw", file).group(1)
     sex = '2'
     sample_dict[sample_name] = [sex, phenotype, {}]
-
+    if fam_hist:
+        if phenotype == '2' and sample_name not in fam_hist_samples:
+            continue
     with open(file, 'r') as vcf_file:
         for vcfline in vcf_file:
             # Exclude header lines.
@@ -243,36 +266,30 @@ with open(f"bridges_filt{cut_off}.map", "w") as outfile:
         print(item, file=outfile)
 print("Done!")
 
-print("\nPreparing the .ped file...")
-ped_dict = {}
 # Now we can use the map_list to get the same order of variants in both files.
-for sample in sample_dict:
-    # Get the sex and phenotype for the sample.
-    ped_dict[sample] = sample_dict[sample][0:2]
-
-    # Using the order of the map_list add the bases for each variant in the
-    # sample line.
-    for var in map_list:
-        # Use the variant id.
-        var = var.split('\t')[1]
-
-        # Get the bases for this particular variant if they are in the
-        # dictionary.
-        if var in sample_dict[sample][2]:
-            ped_dict[sample].extend(sample_dict[sample][2][var])
-
-        # If the sample does not have that variant, we assume that it is
-        # homozygous reference, so we append the reference base twice.
-        else:
-            ped_dict[sample].extend(variant_dict[var][0] * 2)
-print("Done!")
-
 print("\nWriting the .ped file...")
 # Write all the information in the ped file.
 with open(f"bridges_filt{cut_off}.ped", 'w') as outfile:
-    for sample in ped_dict:
-        line = '\t'.join(ped_dict[sample])
-        print(f"{sample}\t{line}", file=outfile)
+    for sample in sample_dict:
+        # Get the sex and phenotype for the sample.
+        outfile.write('\t'.join(sample_dict[sample][0:2]))
+
+        # Using the order of the map_list add the bases for each variant in the
+        # sample line.
+        for var in map_list:
+            # Use the variant id.
+            var = var.split('\t')[1]
+
+            # Get the bases for this particular variant if they are in the
+            # dictionary.
+            if var in sample_dict[sample][2]:
+                outfile.write("\t" + '\t'.join(sample_dict[sample][2][var]))
+
+            # If the sample does not have that variant, we assume that it is
+            # homozygous reference, so we append the reference base twice.
+            else:
+                outfile.write("\t" + '\t'.join(variant_dict[var][0] * 2))
+        outfile.write('\n')
 print("Done!")
 
 # Print the number of variants that were removed during the process on the

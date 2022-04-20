@@ -20,7 +20,7 @@ library(ggrepel)
 library(tidyverse)
 library(gridExtra)
 
-setwd("~/Box/Notes/TestData/Bridges/")
+setwd("~/Box/Notes/Tables/BRIDGES/KnownNovel/")
 
 pie_chart <- function(file_table, plot_name) {
     colnames(file_table)[1] <- 'V1'
@@ -39,9 +39,9 @@ pie_chart <- function(file_table, plot_name) {
 
 
 
-known_novel <- read.table('ClinVar/novel_known_count.txt', sep='\t') %>% 
+known_novel <- read.table('novel_known_count_BRIDGES.txt', sep='\t') %>% 
     arrange(V1)
-filt_known_novel <- read.table('FilteredClinVar/novel_known_count.txt', 
+filt_known_novel <- read.table('filtered_novel_known_count_BRIDGES.txt', 
                                sep='\t') %>% 
     arrange(V1)
 
@@ -62,13 +62,14 @@ filt_known_novel <- filt_known_novel %>%
 known_novel_plot <- pie_chart(known_novel, "Known vs novel percentage")
 filt_known_novel_plot <- pie_chart(filt_known_novel, "Known vs novel percentage after filtration")
 grid.arrange(known_novel_plot, filt_known_novel_plot, ncol=2)
-ggsave('pie_chart.pdf', arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2))
+ggsave('known_vs_novel_piechart_BRIDGES.pdf ', 
+       arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2))
 
 
 ################################################################################
 
-histogram <- read.table('ClinVar/table.txt', sep = '\t')
-filt_histogram <- read.table('FilteredClinVar/table.txt', sep = '\t')
+histogram <- read.table('allele_fraction_BRIDGES.txt', sep = '\t')
+filt_histogram <- read.table('filtered_allele_fraction_BRIDGES.txt', sep = '\t')
 
 density <- ggplot(data = histogram, aes(x=V3, fill=V2)) +
     stat_density() +
@@ -86,4 +87,5 @@ filt_density <- ggplot(data = filt_histogram, aes(x=V3, fill=V2)) +
     theme_bw()
 
 arrangeGrob(density, filt_density)
-ggsave('density.pdf', arrangeGrob(density, filt_density))
+ggsave('allele_fraction_density_BRIDGES.pdf', 
+       arrangeGrob(density, filt_density))
