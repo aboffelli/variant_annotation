@@ -272,7 +272,7 @@ print("\nWriting the .ped file...")
 with open(f"bridges_filt{cut_off}.ped", 'w') as outfile:
     for sample in sample_dict:
         # Get the sex and phenotype for the sample.
-        outfile.write('\t'.join(sample_dict[sample][0:2]))
+        outfile.write(f"{sample}\t" + '\t'.join(sample_dict[sample][0:2]))
 
         # Using the order of the map_list add the bases for each variant in the
         # sample line.
