@@ -192,13 +192,20 @@ for dict_type in bridges_af:
                  total_num:.6f} ({
             len(bridges_af[dict_type][position])} samples)""")
 
-        bridges_fam_perc[position] = (
-            f"""{bridges_fam_perc[position] /
-                 len(fam_hist_samples):.6f} ({fam_perc_count} samples)""")
+        if bridges_fam_perc[position] != 0:
+            bridges_fam_perc[position] = (
+                f"""{bridges_fam_perc[position] /
+                     len(fam_hist_samples):.6f} ({fam_perc_count} samples)""")
+        else:
+            bridges_fam_perc[position] = "NA"
 
-        bridges_fam_perc_50[position] = (
-            f"""{bridges_fam_perc_50[position] /
-                 len(fam_hist_samples):.6f} ({fam_perc_50_count} samples)""")
+        if bridges_fam_perc_50[position] != 0:
+            bridges_fam_perc_50[position] = (
+                f"""{bridges_fam_perc_50[position] /
+                     len(fam_hist_samples):.6f} ({
+                fam_perc_50_count} samples)""")
+        else:
+            bridges_fam_perc_50[position] = "NA"
 
 # Add the new columns to the header of the table and join it together again.
 new_header = header.split('\t')
