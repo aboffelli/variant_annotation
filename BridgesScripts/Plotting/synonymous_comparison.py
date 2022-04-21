@@ -246,7 +246,7 @@ with open('bridges_synonymous_table.txt', 'w') as outfile:
                 if position in bridges_fam_perc_50:
                     new_line.insert(10, bridges_fam_perc_50[position])
                 else:
-                    new_line.insert(10, bridges_fam_perc_50[position])
+                    new_line.insert(10, 'NA')
 
                 print('\t'.join(new_line), file=outfile)
 
