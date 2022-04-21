@@ -96,6 +96,7 @@ indel_count = 0
 off_target_count = 0
 removed_variants = 0
 n_samples = 0
+no_fam_samples = 0
 
 # Number to exclude variants based on the number of samples.
 cut_off = int(sys.argv[1])
@@ -129,12 +130,15 @@ with open("/home/ar7343bo-s/Resources/BRIDGES_fluidigm_juno_panel_primers.txt",
         primer_positions[p_chrom].append((p_start, p_end))
 print("Done!")
 
+# If the family history flag is activated, load the sample names from the file,
+# and store it in a set.
 if fam_hist:
     fam_hist_samples = set()
-    print("Loading cases samples with family history...")
-    with open("Cases/family_history_cases.txt", 'r') as family:
+    print("\nLoading cases samples with family history...")
+    with open("/home/ar7343bo-s/BRIDGES/raidset/FilteredClinVar/Cases/"
+              "family_history_cases.txt", 'r') as family:
         for line in family:
-            fam_hist_samples.add(line.strip())
+            fam_hist_samples.add(line.split('\t')[0])
     print("Done!")
 
 # Prepare the VCF files that will be used.
@@ -158,10 +162,16 @@ for file in list_of_files:
         phenotype = "2"
     sample_name = re.search(r"vep_(\S+)\.raw", file).group(1)
     sex = '2'
-    sample_dict[sample_name] = [sex, phenotype, {}]
+
+    # If the family history flag is activated, ignore the cases that are not in
+    # the set containing the samples with family history.
     if fam_hist:
         if phenotype == '2' and sample_name not in fam_hist_samples:
+            no_fam_samples += 1
+            file_count += 1
             continue
+
+    sample_dict[sample_name] = [sex, phenotype, {}]
     with open(file, 'r') as vcf_file:
         for vcfline in vcf_file:
             # Exclude header lines.
@@ -260,8 +270,14 @@ map_list = sorted(map_list, key=lambda x: (int(x.split('\t')[0]),
                                            int(x.split('\t')[2])))
 print("Done!")
 
+# Set the output file name.
+if fam_hist:
+    output = f"bridges_filt{cut_off}_family"
+else:
+    output = f"bridges_filt{cut_off}"
+
 print("\nWriting the .map file...")
-with open(f"bridges_filt{cut_off}.map", "w") as outfile:
+with open(f"{output}.map", "w") as outfile:
     for item in map_list:
         print(item, file=outfile)
 print("Done!")
@@ -269,7 +285,7 @@ print("Done!")
 # Now we can use the map_list to get the same order of variants in both files.
 print("\nWriting the .ped file...")
 # Write all the information in the ped file.
-with open(f"bridges_filt{cut_off}.ped", 'w') as outfile:
+with open(f"{output}.ped", 'w') as outfile:
     for sample in sample_dict:
         # Get the sex and phenotype for the sample.
         outfile.write(f"{sample}\t" + '\t'.join(sample_dict[sample][0:2]))
@@ -299,6 +315,8 @@ print(f"{fail_count} variants did not pass the filters.")
 print(f"{indel_count} variants were indels.")
 print(f"{off_target_count} variants were off the primer targets.")
 print(f"{n_samples} variants were found only in less than {cut_off} samples.")
+if fam_hist:
+    print(f"{no_fam_samples} samples did not have family history.")
 
 # Print the run time.
 print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))
