@@ -97,22 +97,42 @@ off_target_count = 0
 removed_variants = 0
 n_samples = 0
 no_fam_samples = 0
+no_synonymous_count = 0
+
+usage = ("""Usage: plink_input.py [N] [--family] [--synonymous] [-h]
+
+    N: positional argument integer with the cut-off number for the number of \
+samples containing a variant
+    --family: Boolean to remove samples that do not have family history
+    --synonymous: Boolean to remove non-synonymous variants
+    -h --help: Prints this help message and exits.""")
 
 # Number to exclude variants based on the number of samples.
-cut_off = int(sys.argv[1])
+
+try:
+    cut_off = int(sys.argv[1])
+
+except IndexError:
+    cut_off = 0
+
+except ValueError:
+    print(usage)
+    exit()
 
 # Check if the family history is activated.
-try:
-    if sys.argv[2] == '--family':
-        fam_hist = True
-    else:
-        raise TypeError
-except IndexError:
+if "--help" in sys.argv or "-h" in sys.argv:
+    print(usage)
+    exit()
+
+if '--family' in sys.argv:
+    fam_hist = True
+else:
     fam_hist = False
 
-except TypeError:
-    print("Argument not allowed. Using all samples...")
-    fam_hist = False
+if '--synonymous' in sys.argv:
+    synonymous = True
+else:
+    synonymous = False
 
 # Load the primer positions from the file.
 print('Loading the primer positions...')
@@ -177,6 +197,13 @@ for file in list_of_files:
             # Exclude header lines.
             if not vcfline.startswith("#"):
                 split_line = vcfline.split('\t')
+
+                # If the synonymous flag is activated, remove variants that are
+                # not synonymous variants.
+                if synonymous:
+                    if 'synonymous_variant' not in vcfline:
+                        no_synonymous_count += 1
+                        continue
 
                 # Get the reference and alternative base.
                 ref_base = split_line[3].upper().strip()
@@ -251,7 +278,7 @@ print("\nPreparing the map file...")
 map_list = []
 
 # Set a cut off value for the minimum number of patients with the variant.
-print(f"Excluding variants that are present in less then {cut_off} samples")
+print(f"Excluding variants that are present in less then {cut_off} samples...")
 
 # Append the map lines already in the right format if the number of samples
 # is enough.
@@ -271,11 +298,14 @@ map_list = sorted(map_list, key=lambda x: (int(x.split('\t')[0]),
 print("Done!")
 
 # Set the output file name.
+output = f"bridges_filt{cut_off}"
 if fam_hist:
-    output = f"bridges_filt{cut_off}_family"
-else:
-    output = f"bridges_filt{cut_off}"
+    output = f"{output}_family"
 
+if synonymous:
+    output = f"{output}_synonymous"
+
+# Write the .map file.
 print("\nWriting the .map file...")
 with open(f"{output}.map", "w") as outfile:
     for item in map_list:
@@ -317,6 +347,8 @@ print(f"{off_target_count} variants were off the primer targets.")
 print(f"{n_samples} variants were found only in less than {cut_off} samples.")
 if fam_hist:
     print(f"{no_fam_samples} samples did not have family history.")
+if synonymous:
+    print(f"{no_synonymous_count} variants were not synonymous.")
 
 # Print the run time.
 print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))
