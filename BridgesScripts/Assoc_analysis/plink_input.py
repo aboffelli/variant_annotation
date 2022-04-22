@@ -98,6 +98,7 @@ removed_variants = 0
 n_samples = 0
 no_fam_samples = 0
 no_synonymous_count = 0
+pathogenic_count = 0
 
 usage = ("""Usage: plink_input.py [N] [--family] [--synonymous] [-h]
 
@@ -119,7 +120,7 @@ except ValueError:
     print(usage)
     exit()
 
-# Check if the family history is activated.
+# Check the arguments passed in the command line.
 if "--help" in sys.argv or "-h" in sys.argv:
     print(usage)
     exit()
@@ -133,6 +134,12 @@ if '--synonymous' in sys.argv:
     synonymous = True
 else:
     synonymous = False
+
+if "--pathogenic" in sys.argv:
+    pathogenic = True
+    pathogenic_set = set()
+else:
+    pathogenic = False
 
 # Load the primer positions from the file.
 print('Loading the primer positions...')
@@ -221,6 +228,15 @@ for file in list_of_files:
 
                 # Check if the variant passes in all criteria.
                 if qc_check(vcfline):
+
+                    # Check if the variant is pathogenic after the qc, since we
+                    # want to remove samples that have real pathogenic variants.
+                    if pathogenic:
+                        if "Pathogenic" in vcfline \
+                                or "Likely_pathogenic" in vcfline:
+                            pathogenic_set.add(sample_name)
+                            continue
+
                     # Retrieve chr number and position for the map file.
                     chrom = split_line[0][3:]
                     if chrom == 'X':
@@ -305,6 +321,9 @@ if fam_hist:
 if synonymous:
     output = f"{output}_synonymous"
 
+if pathogenic:
+    output = f"{output}_pathogenic"
+
 # Write the .map file.
 print("\nWriting the .map file...")
 with open(f"{output}.map", "w") as outfile:
@@ -317,6 +336,9 @@ print("\nWriting the .ped file...")
 # Write all the information in the ped file.
 with open(f"{output}.ped", 'w') as outfile:
     for sample in sample_dict:
+        if sample in pathogenic_set:
+            pathogenic_count += 1
+            continue
         # Get the sex and phenotype for the sample.
         outfile.write(f"{sample}\t" + '\t'.join(sample_dict[sample][0:2]))
 
@@ -349,6 +371,8 @@ if fam_hist:
     print(f"{no_fam_samples} samples did not have family history.")
 if synonymous:
     print(f"{no_synonymous_count} variants were not synonymous.")
+if pathogenic:
+    print(f"{pathogenic_count} samples had a pathogenic variant.")
 
 # Print the run time.
 print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))
