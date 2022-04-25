@@ -205,13 +205,6 @@ for file in list_of_files:
             if not vcfline.startswith("#"):
                 split_line = vcfline.split('\t')
 
-                # If the synonymous flag is activated, remove variants that are
-                # not synonymous variants.
-                if synonymous:
-                    if 'synonymous_variant' not in vcfline:
-                        no_synonymous_count += 1
-                        continue
-
                 # Get the reference and alternative base.
                 ref_base = split_line[3].upper().strip()
                 alt_base = split_line[4].upper().strip()
@@ -235,6 +228,13 @@ for file in list_of_files:
                         if "Pathogenic" in vcfline \
                                 or "Likely_pathogenic" in vcfline:
                             pathogenic_set.add(sample_name)
+                            continue
+
+                    # If the synonymous flag is activated, remove variants that are
+                    # not synonymous variants.
+                    if synonymous:
+                        if 'synonymous_variant' not in vcfline:
+                            no_synonymous_count += 1
                             continue
 
                     # Retrieve chr number and position for the map file.
