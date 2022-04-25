@@ -137,7 +137,6 @@ else:
 
 if "--pathogenic" in sys.argv:
     pathogenic = True
-    pathogenic_set = set()
 else:
     pathogenic = False
 
@@ -175,15 +174,21 @@ for file in list_of_files.copy():
     if '.vcf' not in file:
         list_of_files.remove(file)
 
+# Create a set to store the samples that have pathogenic variants
+pathogenic_set = set()
+
 # The novel variant will be named as varN. Every time a novel variant is found
 # we add 1 to this variable.
 var_num = 1
 file_count = 1
 for file in list_of_files:
     print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
+
     # Get the phenotype, sample name and sex for the ped file.
-    # The phenotype is Case or Control, for now.
-    if file.split('/')[1] == "Controls":
+    # The phenotype is Case or Control, which can be retrieved from the file
+    # path.
+    file_type = re.search(r"/(\w+)/(?:bridges|inter)", file).group(1)
+    if file_type == "Controls":
         phenotype = "1"
     else:
         phenotype = "2"
