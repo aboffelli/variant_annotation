@@ -87,7 +87,7 @@ for file in list_of_files:
     print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
 
     # Retrieve the type (Controls/Cases) from the file path.
-    file_type = file.split('/')[2]
+    file_type = re.search(r"/(\w+)/(?:bridges|inter)", file).group(1)
 
     # Isolate the sample name.
     sample = re.search(r'vep_(\S+).raw', file).group(1)

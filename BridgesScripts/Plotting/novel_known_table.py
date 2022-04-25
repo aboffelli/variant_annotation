@@ -51,7 +51,7 @@ for file in list_of_files:
     print(f"{file_count}/{len(list_of_files)}", end='\r', flush=True)
 
     # Define if it is a Control or Case file based on the path.
-    file_type = file.split('/')[1]
+    file_type = re.search(r"/(\w+)/(?:bridges|inter)", file).group(1)
     with open(file, 'r') as vcf:
         for vcfline in vcf:
             if not vcfline.startswith('#'):
