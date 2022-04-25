@@ -269,8 +269,8 @@ with open('synonymous_table.txt', 'w') as outfile:
           "ESS\tRBP\tConsequence",
           file=outfile)
 
-    for variant in sorted(synonymous_table):
-        # Insert the SWEA allele frequency in the result list. One minus the
+    for variant in sorted(synonymous_table, key=lambda x: int(x.split(':')[0])):
+        # Insert the SWEA allele frequency in the result list. Two minus the
         # header position since we don't have the position in this list.
         result = list(synonymous_table[variant])
         result.insert(4, swea_af_perc[variant])
