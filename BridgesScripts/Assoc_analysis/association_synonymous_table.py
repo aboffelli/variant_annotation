@@ -368,7 +368,9 @@ with open(f'{output_name}_table.txt', 'w') as outfile:
           "deltaRSCU\tESE\tESS\tRBP\tConsequence",
           file=outfile)
 
-    for variant in sorted(synonymous_table, key=lambda x: int(x.split(':')[0])):
+    for variant in sorted(synonymous_table,
+                          key=lambda x: (int(x.split(':')[0]),
+                                         int(x.split(':')[1]))):
         # Insert the Bridges allele frequencies in the result list. Two minus
         # the header position since we don't have the position in this list.
         result = list(synonymous_table[variant])
