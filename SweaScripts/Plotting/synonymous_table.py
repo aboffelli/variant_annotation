@@ -192,10 +192,12 @@ def ese_ess_parser(transcript):
         return ese, ess
 
 
+print("Loading the targeted genes...")
 seq_genes = set()
 with open('../whole_gene_list.txt', 'r') as gene_list:
     for line in gene_list:
         seq_genes.add(line.strip())
+print("Done!")
 
 # Put all files in a list, removing anything that is not a vcf file.
 files_directory = "MMSamplesWithoutPathogenic/"
@@ -212,6 +214,7 @@ swea_af_perc = {}
 # QC checking
 qc = {}
 
+print("\nReading files...")
 # File count that will be printed in the screen.
 file_count = 1
 for file in list_of_files:
@@ -248,7 +251,9 @@ for file in list_of_files:
 
         # Raise the file count.
         file_count += 1
+print("\nDone!")
 
+print("\nCalculating the allele frequency...")
 # Calculate the allele frequency of each variant.
 for position in swea_af:
     swea_af_perc[position] = 0
@@ -260,7 +265,9 @@ for position in swea_af:
     swea_af_perc[position] = \
         f'{swea_af_perc[position] / 3403:.6f} ' \
         f'({len(swea_af[position])} samples)'
+print("Done!")
 
+print("\nWriting the output file...")
 # Save all the information in a text file tab delimited.
 with open('synonymous_table.txt', 'w') as outfile:
     # Add the header
@@ -268,13 +275,22 @@ with open('synonymous_table.txt', 'w') as outfile:
           "AF_SweGen\tAF_SWEA\tPhyloP\tGERP\tdeltaRSCU\tdeltaLogitPsi\tESE\t"
           "ESS\tRBP\tConsequence",
           file=outfile)
+    for variant in synonymous_table.copy():
+        if variant.split(':')[0] == 'X':
+            new_key = re.sub(r"X", "23", variant)
+            synonymous_table[new_key] = synonymous_table.pop(variant)
 
     for variant in sorted(synonymous_table,
                           key=lambda x: (int(x.split(':')[0]),
                                          int(x.split(':')[1][:-1]))):
+        if variant.split(':')[0] == '23':
+            variant_23 = variant
+            variant = re.sub(r"23:", "X:", variant)
+        else:
+            variant_23 = variant
         # Insert the SWEA allele frequency in the result list. Two minus the
         # header position since we don't have the position in this list.
-        result = list(synonymous_table[variant])
+        result = list(synonymous_table[variant_23])
         result.insert(4, swea_af_perc[variant])
 
         # Change any empty space to NA
@@ -286,11 +302,14 @@ with open('synonymous_table.txt', 'w') as outfile:
         # position.
         print("{}\t{}\t{}".format(variant[:-1], variant[-1], '\t'.join(result)),
               file=outfile)
+print("Done!")
 
+print("\nWriting QC file...")
 # Create the qc file.
 with open('qc_file.txt', 'w') as qc_file:
     for pos in qc:
         print(pos, qc[pos], file=qc_file)
+print("Done!")
 
 # Print the run time.
 print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))
