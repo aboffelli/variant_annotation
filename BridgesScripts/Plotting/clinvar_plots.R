@@ -16,7 +16,6 @@
 ##  
 ##  
 ## -----------------------------------------------------------------------------
-library(ggplot2)
 library(tidyverse, quietly = T)
 library(ggrepel)
 
@@ -41,9 +40,9 @@ pie_chart <- function(file_table, plot_name) {
 # setwd("C:/Users/Arthu/Box/Notes/Tables/ClinvarTables")
 setwd("/Users/student/Box/Notes/Tables/BRIDGES/FilteredClinVarTables")
 
-# sample_type <- "Controls"
-# fam_hist_num <- 3698
-# total_num <- 53306 - fam_hist_num
+sample_type <- "Controls"
+fam_hist_num <- 3698
+total_num <- 53306 - fam_hist_num
 
 sample_type <- "Cases"
 fam_hist_num <- 11518
@@ -155,16 +154,70 @@ samples_pathogenic <- samples_pathogenic %>%
     mutate(Hist = if_else(V1 !="No_family_hist", "Family history", 
                           "No family history"))
 
+samples_with_patho <- samples_pathogenic %>% 
+    select(V2, Hist) %>% 
+    distinct()
+    
+samples_with_patho_count <- tibble(
+    Type=c("Pathogenic family history",
+           "Pathogenic no family history",
+           "No pathogenic family history",
+           "No pathogenic no family history"),
+    
+    Count=c(nrow(filter(samples_with_patho, Hist == "Family history")),
+            nrow(filter(samples_with_patho, Hist != "Family history")),
+            fam_hist_num - nrow(filter(samples_with_patho, 
+                                       Hist == "Family history")),
+            total_num - nrow(filter(samples_with_patho, 
+                                    Hist != "Family history"))
+            )
+    )
+
+samples_with_patho_count <- samples_with_patho_count %>% 
+    transform(Perc = ave(Count,
+                         FUN = function(x) round(x/sum(x),
+                                                 4)*100)) %>% 
+    arrange(Type) %>% 
+    mutate(csum = rev(cumsum(rev(Perc))), 
+           pos = Perc/2 + lead(csum, 1),
+           pos = if_else(is.na(pos), Perc/2, pos))
+    
+
+
+samples_with_patho_plot <- ggplot(data=samples_with_patho_count, 
+                                  aes(x='', y=Perc, fill=Type)) +
+    theme_void() +
+    geom_col(col='black', size=0.05) +
+    coord_polar(theta = 'y') +
+    scale_fill_discrete(name='') +
+    labs(title=paste("Percentage of samples with pathogenic variants -",
+                     sample_type)) +
+    geom_label_repel(data = samples_with_patho_count,
+                     aes(y = pos, label = paste0(Perc, "%")),
+                     size = 4.5, nudge_x = 0.6, show.legend = FALSE,
+                     max.overlaps = 20)
+
+print(samples_with_patho_plot)
+ggsave(paste0(sample_type, '/Plots/percentage_samples_pathogenic_BRIDGES.pdf'), 
+       samples_with_patho_plot, width=30, height=20, units='cm')
+ggsave(paste0(sample_type, '/Plots/percentage_samples_pathogenic_BRIDGES.png'), 
+       samples_with_patho_plot, width=30, height=20, units='cm')
+    
+
+################################################################################
+
 samples_pathogenic <- as.data.frame(table(samples_pathogenic[,c(1,2,9)])) %>% 
     filter(Freq > 0) %>% 
     select(-Freq)
 
-# samples_pathogenic %>% as_tibble %>% select(V2, Freq) %>% group_by(V2) %>% nest %>% 
+
+
+# samples_pathogenic %>% as_tibble %>% select(V2, Freq) %>% group_by(V2) %>% nest %>%
 #     mutate(any_pathologic = map_lgl(data, function(df){}))
 # Purrr
 
 # samples_pathogenic <- samples_pathogenic[order(samples_pathogenic$Freq),]
-# write.table(samples_pathogenic, 
+# write.table(samples_pathogenic,
 #             file=paste0(sample_type, '/number_of_pathogenic_var_by_sample_BRIDGES.txt'),
 #             sep='\t', row.names=F, col.names=F, quote=F)
 samples_pathogenic <- as.data.frame(table(samples_pathogenic$V1, 
