@@ -322,12 +322,14 @@ print("Done!")
 output = f"bridges_filt{cut_off}"
 if fam_hist:
     output = f"{output}_family"
+else:
+    output = f"{output}_all_samples"
 
 if synonymous:
     output = f"{output}_synonymous"
 
 if pathogenic:
-    output = f"{output}_pathogenic"
+    output = f"{output}_no_pathogenic"
 
 # Write the .map file.
 print("\nWriting the .map file...")
