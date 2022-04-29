@@ -20,16 +20,22 @@ library(ggrepel)
 library(tidyverse)
 library(gridExtra)
 
-setwd("~/Box/Notes/Tables/BRIDGES/KnownNovel/")
+setwd("~/Box/Notes/Tables/BRIDGES/KnownNovel")
 
 pie_chart <- function(file_table, plot_name) {
-    colnames(file_table)[1] <- 'V1'
-    x <- ggplot(data=file_table, aes(x='', y=Perc, 
-                                     fill=paste(V1,V2))) +
+    ## -------------------------------------------------------------------------
+    ## Function to create a pie chart using ggplot2.
+    ## -------------------------------------------------------------------------
+    
+    # Rename the first and second column to avoid errors
+    colnames(file_table)[c(1,2)] <- c('V1', "V2")
+    x <- ggplot(data=file_table, aes(x='', y=Perc, fill=paste(V1,V2))) +
         theme_void() +
         geom_col(col='black', size=0.05) +
         coord_polar(theta = 'y') +
         scale_fill_discrete(name='') +
+        
+        # Label flags with the percentage.
         geom_label_repel(data = file_table,
                          aes(y = pos, label = paste0(Perc, "%")),
                          size = 4.5, nudge_x = 0.6, show.legend = FALSE) +
@@ -39,9 +45,9 @@ pie_chart <- function(file_table, plot_name) {
 
 
 
-known_novel <- read.table('novel_known_count_BRIDGES.txt', sep='\t') %>% 
+known_novel <- read.table('Tables/Tables/novel_known_count_BRIDGES.txt', sep='\t') %>% 
     arrange(V1)
-filt_known_novel <- read.table('filtered_novel_known_count_BRIDGES.txt', 
+filt_known_novel <- read.table('Tables/filtered_novel_known_count_BRIDGES.txt', 
                                sep='\t') %>% 
     arrange(V1)
 
@@ -62,14 +68,14 @@ filt_known_novel <- filt_known_novel %>%
 known_novel_plot <- pie_chart(known_novel, "Known vs novel percentage")
 filt_known_novel_plot <- pie_chart(filt_known_novel, "Known vs novel percentage after filtration")
 grid.arrange(known_novel_plot, filt_known_novel_plot, ncol=2)
-ggsave('known_vs_novel_piechart_BRIDGES.pdf ', 
+ggsave('Plots/Plots/known_vs_novel_piechart_BRIDGES.pdf ', 
        arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2))
 
 
 ################################################################################
 
-histogram <- read.table('allele_fraction_BRIDGES.txt', sep = '\t')
-filt_histogram <- read.table('filtered_allele_fraction_BRIDGES.txt', sep = '\t')
+histogram <- read.table('Tables/allele_fraction_BRIDGES.txt', sep = '\t')
+filt_histogram <- read.table('Tables/filtered_allele_fraction_BRIDGES.txt', sep = '\t')
 
 density <- ggplot(data = histogram, aes(x=V3, fill=V2)) +
     stat_density() +
@@ -87,5 +93,5 @@ filt_density <- ggplot(data = filt_histogram, aes(x=V3, fill=V2)) +
     theme_bw()
 
 arrangeGrob(density, filt_density)
-ggsave('allele_fraction_density_BRIDGES.pdf', 
+ggsave('Plots/allele_fraction_density_BRIDGES.pdf', 
        arrangeGrob(density, filt_density))
