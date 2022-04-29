@@ -275,19 +275,31 @@ with open('synonymous_table.txt', 'w') as outfile:
           "AF_SweGen\tAF_SWEA\tPhyloP\tGERP\tdeltaRSCU\tdeltaLogitPsi\tESE\t"
           "ESS\tRBP\tConsequence",
           file=outfile)
+
+    # To be able to sort the variants numerically, we need to change the
+    # chromosome X to 23 first.
     for variant in synonymous_table.copy():
         if variant.split(':')[0] == 'X':
             new_key = re.sub(r"X", "23", variant)
             synonymous_table[new_key] = synonymous_table.pop(variant)
 
+    # Now we sort using the chromosome and position numbers.
     for variant in sorted(synonymous_table,
                           key=lambda x: (int(x.split(':')[0]),
                                          int(x.split(':')[1][:-1]))):
+
+        # If the chromosome is 23 we want to change to X again.
         if variant.split(':')[0] == '23':
+
+            # Since it will be different in both dictionaries, we keep both
+            # positions (X and 23)
             variant_23 = variant
             variant = re.sub(r"23:", "X:", variant)
+
+        # Set the variant_23 to the same as variant if it's not chr 23.
         else:
             variant_23 = variant
+
         # Insert the SWEA allele frequency in the result list. Two minus the
         # header position since we don't have the position in this list.
         result = list(synonymous_table[variant_23])

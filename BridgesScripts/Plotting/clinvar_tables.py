@@ -149,6 +149,7 @@ for file in list_of_files.copy():
 file_type = os.path.abspath(os.getcwd()).split('/')[-1].lower()
 
 # Load the family history file and save the sample names in  a set.
+print("Loading the family history samples...")
 with open(f"family_history_{file_type}.txt", 'r') as family_samples:
     family = {}
     for line in family_samples:
@@ -156,16 +157,15 @@ with open(f"family_history_{file_type}.txt", 'r') as family_samples:
         sample, category = line.strip().split('\t')
         # Remove the new line in the end.
         family[sample] = category
-
-# Initiate all the dictionaries with two divisions, one for samples with family
-# history and one for samples without family history.
+print("Done!")
+# Initiate all the dictionaries.
 patho_count = {}
 type_dict = {}
 samples_pathogenic = {}
 most_common = {}
 synonymous_variants = {}
 
-
+print("\nReading files...")
 file_count = 1
 for file in list_of_files:
     # Print the file number to the screen.
@@ -174,13 +174,13 @@ for file in list_of_files:
     # Get the sample name from the file name.
     sample_name = re.search(r'vep_(\S+)\.raw', file).group(1)
 
-    # Check if the sample has family history or not and create the categories
-    # in all dictionaries.
+    # Check if the sample has family history or not.
     if sample_name in family:
         fam_hist = family[sample_name]
     else:
         fam_hist = "No_family_hist"
 
+    # Create the categories in all dictionaries.
     for d in [patho_count, type_dict, samples_pathogenic,
               most_common, synonymous_variants]:
         if fam_hist not in d:
@@ -203,7 +203,9 @@ for file in list_of_files:
 
         # Raise the file count.
         file_count += 1
+print("\nDone!")
 
+print("\nWriting the output files...")
 # Create an output directory if it does not exist.
 out_dir = 'ClinVarTables/'
 if not os.path.exists(out_dir):
@@ -211,7 +213,7 @@ if not os.path.exists(out_dir):
 
 # Print the results of each dictionary to the files.
 
-# Pathogenic variants count
+# Pathogenic variants count.
 with open(out_dir + 'pathogenic_count.txt', 'w') as outfile:
     # Family history and No family history.
     for history in patho_count:
@@ -220,7 +222,7 @@ with open(out_dir + 'pathogenic_count.txt', 'w') as outfile:
             print(f'{history}\t{key}\t{patho_count[history][key]}',
                   file=outfile)
 
-# Clinical type for all variants
+# Clinical type for all variants.
 with open(out_dir + 'clinical_type.txt', 'w') as outfile:
     # Family history and No family history.
     for history in type_dict:
@@ -228,7 +230,7 @@ with open(out_dir + 'clinical_type.txt', 'w') as outfile:
         for key in type_dict[history]:
             print(f'{history}\t{key}\t{type_dict[history][key]}', file=outfile)
 
-# Samples that contain pathogenic variants
+# Samples that contain pathogenic variants.
 with open(out_dir + 'samples_pathogenic.txt', 'w') as outfile:
     # Family history and No family history.
     for history in samples_pathogenic:
@@ -246,7 +248,7 @@ with open(out_dir + 'samples_pathogenic.txt', 'w') as outfile:
                       f'{gene}\t{samples_pathogenic[history][sample][key]}',
                       file=outfile)
 
-# Most common pathogenic variants
+# Most common pathogenic variants.
 with open(out_dir + 'most_common_pathogenic_var.txt', 'w') as outfile:
     # Family history and No family history.
     for history in most_common:
@@ -256,7 +258,7 @@ with open(out_dir + 'most_common_pathogenic_var.txt', 'w') as outfile:
                   file=outfile)
 
 
-# Synonymous variants
+# Synonymous variants.
 with open(out_dir+'synonymous_variants.txt', 'w') as outfile:
     # Family history and No family history.
     for history in synonymous_variants:
@@ -264,5 +266,7 @@ with open(out_dir+'synonymous_variants.txt', 'w') as outfile:
         for key in synonymous_variants[history]:
             print(f'{history}\t{key}\t{synonymous_variants[history][key]}',
                   file=outfile)
+
+print("Done!")
 
 print('\nRun time: {:.2f} seconds'.format(time.time() - start_time))
