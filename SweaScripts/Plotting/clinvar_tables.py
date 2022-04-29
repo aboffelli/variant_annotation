@@ -10,7 +10,6 @@ Author: Arthur Boffelli Castro
 
 GitHub: https://github.com/aboffelli/variant_annotation
 """
-# TODO: Add comments
 
 import os
 import re
