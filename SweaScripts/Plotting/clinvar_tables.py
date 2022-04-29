@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Title:
+Title: Clinvar Tables.
 
-Description: Script that creates tables with ClinVar information to plot.
+Description: Script that parse the ClinVar annotation in the vcfs, and creates
+    5 tables containing the parsed information.
+    - Variants with pathogenic report.
+    - Clinical relevance of all unique variants.
+    - Samples that contain pathogenic variant.
+    - Number of occurrences of each pathogenic variant.
+    - Only synonymous variants and their clinical relevance.
 
 Created on: 2021-12-16
 Author: Arthur Boffelli Castro
