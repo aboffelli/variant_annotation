@@ -1,4 +1,22 @@
-# Plots for the Annotation part
+## -----------------------------------------------------------------------------
+##
+## Author: Arthur Boffelli Castro
+##
+## Date created: Mon May  2 16:13:45 2022
+##
+## GitHub: https://github.com/aboffelli/
+##
+## Description:
+##
+##  
+## -----------------------------------------------------------------------------
+## 
+## Notes:
+##  
+##  
+## ----------------------------------------------------------------------------- 
+
+# TODO: Add comments
 library(ggplot2)
 library(reshape2)
 library(gridExtra)

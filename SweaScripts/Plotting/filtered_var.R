@@ -1,3 +1,23 @@
+## -----------------------------------------------------------------------------
+##
+## Author: Arthur Boffelli Castro
+##
+## Date created: Mon May  2 16:16:00 2022
+##
+## GitHub: https://github.com/aboffelli/
+##
+## Description:
+##
+##  
+## -----------------------------------------------------------------------------
+## 
+## Notes:
+##  
+##  
+## ----------------------------------------------------------------------------- 
+
+# TODO: Add comments
+
 # Create plots for the variant filtering
 library(ggplot2)
 library(reshape2)

@@ -16,6 +16,8 @@
 ##  
 ##  
 ## -----------------------------------------------------------------------------
+
+# TODO: Add comments
 library(ggplot2)
 
 pie_chart <- function(file_table, plot_name) {

@@ -4,9 +4,11 @@
 ##
 ## Date created: Mon Mar 14 11:03:05 2022
 ##
-## GitHub: https://github.com/aboffelli/
+## GitHub: https://github.com/aboffelli/variant_annotation
 ##
-## Description: Plots for quality control of the BRIDGES files.
+## Description: Plots for quality control of the BRIDGES files. One plot 
+##  containing the percentage of known and novel variants, and one plot with
+##  the distribution of the allele fraction for all variants. 
 ##
 ##  
 ## -----------------------------------------------------------------------------
@@ -44,6 +46,9 @@ pie_chart <- function(file_table, plot_name) {
 }
 
 
+## -----------------------------------------------------------------------------
+## Plot for the percentage of known and novel variant before and after the 
+## second filtration.
 
 known_novel <- read.table('Tables/Tables/novel_known_count_BRIDGES.txt', sep='\t') %>% 
     arrange(V1)
@@ -51,20 +56,24 @@ filt_known_novel <- read.table('Tables/filtered_novel_known_count_BRIDGES.txt',
                                sep='\t') %>% 
     arrange(V1)
 
-known_novel <- transform(known_novel, Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 2)*100))
+# Add a percentage column.
+known_novel <- transform(known_novel, 
+                         Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 
+                                                                    2)*100))
+filt_known_novel <- transform(filt_known_novel, Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 2)*100))
 
+# Add the positions for the flags in the pie chart.
 known_novel <- known_novel %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
-
-filt_known_novel <- transform(filt_known_novel, Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 2)*100))
 
 filt_known_novel <- filt_known_novel %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
            pos = Perc/2 + lead(csum, 1),
            pos = if_else(is.na(pos), Perc/2, pos))
 
+# Create the two pie charts, join the plots and save it as pdf.
 known_novel_plot <- pie_chart(known_novel, "Known vs novel percentage")
 filt_known_novel_plot <- pie_chart(filt_known_novel, "Known vs novel percentage after filtration")
 grid.arrange(known_novel_plot, filt_known_novel_plot, ncol=2)
@@ -72,11 +81,15 @@ ggsave('Plots/Plots/known_vs_novel_piechart_BRIDGES.pdf ',
        arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2))
 
 
-################################################################################
+##------------------------------------------------------------------------------
+## Plots for the distribution of allele fraction of the variants before and
+## after the second filtration.
+
 
 histogram <- read.table('Tables/allele_fraction_BRIDGES.txt', sep = '\t')
 filt_histogram <- read.table('Tables/filtered_allele_fraction_BRIDGES.txt', sep = '\t')
 
+# Create the density plot for both tables.
 density <- ggplot(data = histogram, aes(x=V3, fill=V2)) +
     stat_density() +
     facet_wrap(~V1, ncol = 1) +
@@ -92,6 +105,7 @@ filt_density <- ggplot(data = filt_histogram, aes(x=V3, fill=V2)) +
     scale_fill_discrete(name="Variant type") +
     theme_bw()
 
+# Join both plots and save it as a pdf.
 arrangeGrob(density, filt_density)
 ggsave('Plots/allele_fraction_density_BRIDGES.pdf', 
        arrangeGrob(density, filt_density))
