@@ -50,7 +50,8 @@ pie_chart <- function(file_table, plot_name) {
 ## Plot for the percentage of known and novel variant before and after the 
 ## second filtration.
 
-known_novel <- read.table('Tables/Tables/novel_known_count_BRIDGES.txt', sep='\t') %>% 
+known_novel <- read.table('Tables/Tables/novel_known_count_BRIDGES.txt',
+                          sep='\t') %>% 
     arrange(V1)
 filt_known_novel <- read.table('Tables/filtered_novel_known_count_BRIDGES.txt', 
                                sep='\t') %>% 
@@ -60,7 +61,10 @@ filt_known_novel <- read.table('Tables/filtered_novel_known_count_BRIDGES.txt',
 known_novel <- transform(known_novel, 
                          Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 
                                                                     2)*100))
-filt_known_novel <- transform(filt_known_novel, Perc = ave(V3, V1, FUN = function(x) round(x/sum(x), 2)*100))
+filt_known_novel <- transform(filt_known_novel, 
+                              Perc = ave(V3, V1, 
+                                         FUN = function(x) round(x/sum(x), 
+                                                                 2)*100))
 
 # Add the positions for the flags in the pie chart.
 known_novel <- known_novel %>% 
@@ -75,7 +79,8 @@ filt_known_novel <- filt_known_novel %>%
 
 # Create the two pie charts, join the plots and save it as pdf.
 known_novel_plot <- pie_chart(known_novel, "Known vs novel percentage")
-filt_known_novel_plot <- pie_chart(filt_known_novel, "Known vs novel percentage after filtration")
+filt_known_novel_plot <- pie_chart(filt_known_novel, 
+                                   "Known vs novel percentage after filtration")
 grid.arrange(known_novel_plot, filt_known_novel_plot, ncol=2)
 ggsave('Plots/Plots/known_vs_novel_piechart_BRIDGES.pdf ', 
        arrangeGrob(known_novel_plot, filt_known_novel_plot, ncol=2))
@@ -85,9 +90,16 @@ ggsave('Plots/Plots/known_vs_novel_piechart_BRIDGES.pdf ',
 ## Plots for the distribution of allele fraction of the variants before and
 ## after the second filtration.
 
+# Remove the pathogenic variants and variants that have a AF higher than 1.
+histogram <- read.table('Tables/allele_fraction_BRIDGES.txt', sep = '\t') %>% 
+    arrange(-V3) %>% 
+    filter(V3 <= 1, V2 != "Pathogenic")
 
-histogram <- read.table('Tables/allele_fraction_BRIDGES.txt', sep = '\t')
-filt_histogram <- read.table('Tables/filtered_allele_fraction_BRIDGES.txt', sep = '\t')
+filt_histogram <- read.table('Tables/filtered_allele_fraction_BRIDGES.txt', 
+                             sep = '\t') %>% 
+    arrange(-V3) %>% 
+    filter(V3 <= 1, V2 != "Pathogenic")
+    
 
 # Create the density plot for both tables.
 density <- ggplot(data = histogram, aes(x=V3, fill=V2)) +
