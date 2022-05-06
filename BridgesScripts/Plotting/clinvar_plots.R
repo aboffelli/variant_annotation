@@ -45,15 +45,6 @@ pie_chart <- function(file_table, plot_name) {
     return(x)
 }
 
-
-# TODO: Add the controls in the same plot.
-
-# Since the number of Control and Cases are different, and the tables will be
-# in their respect directories, un-comment the group you are using before
-#  continuing.
-
-
-
 ## Pathogenic variants -------------------------------------------------------
 ## Pie chart of the percentage of pathogenic variants.
 
@@ -116,7 +107,7 @@ control_pathogenic <- read_tsv('Controls/Tables/pathogenic_count_BRIDGES.txt',
 pathogenic <- case_pathogenic %>% full_join(control_pathogenic) 
     
 # Create the plot and save it as a pdf and as a png.
-pathogenic_plot <- pie_chart(pathogenic, "Pathogenic Percentage")
+pathogenic_plot <- pie_chart(pathogenic, "Percentage of pathogenic variants")
 
 print(pathogenic_plot)
 
@@ -240,7 +231,8 @@ most_common_plot <- ggplot(data=most_common,
     scale_x_discrete(guide = guide_axis(n.dodge=2)) +
     labs(x='Variant', y='Count', 
          title='Most common genes with pathogenic variants') +
-    facet_wrap(~Sample_type + Hist + Hist50, ncol = 1) +
+    facet_wrap(~Sample_type + Hist + Hist50, ncol = 1,
+               strip.position = "bottom") +
     theme()
 
 print(most_common_plot)
@@ -253,6 +245,24 @@ ggsave('Plots/most_common_genes_pathogenic_variant_BRIDGES.png',
 ## Samples with pathogenic ---------------------------------------------------
 ## Pie chart with the percentage of samples that contain at least one pathogenic
 ## variant.
+
+# Number of samples in each type.
+total_n_samples <- read_tsv("Cases/family_history_cases.txt", col_names = F) %>% 
+    mutate(Type=case_when(
+        str_detect(X2, "50BC") ~ "Family history BC before 50 yo",
+        str_detect(X2, "FirstBC") ~ "First Degree BC",
+        str_detect(X2, "SecondBC") ~ "Second degree BC",
+        str_detect(X2, "50OC") ~ "Family history OC before 50 yo",
+        str_detect(X2, "FirstOC") ~ "First degree OC",
+        str_detect(X2, "SecondOC") ~ "Second degree OC")) %>% 
+    select(Type) %>% 
+    count(Type)
+
+total_n <- 60239    
+fam_hist_num <- 11518
+no_fam_hist_num <- 60239 - fam_hist_num
+c_total_num <- 53306
+
 
 cases_samples_pathogenic <- read_tsv('Cases/Tables/samples_pathogenic_BRIDGES.txt',
                                  col_names = F) %>% 
@@ -281,19 +291,15 @@ controls_with_patho <- controls_samples_pathogenic %>%
     distinct() %>% 
     count()
 
-# Number of samples in each type.
-fam_hist_num <- 11518
-no_fam_hist_num <- 60239 - fam_hist_num
-c_total_num <- 53306
 
 # Create a new data frame with the counts of samples.    
 cases_samples_with_patho_count <- tibble(
     Sample_type = "Cases",
-    Type=c("Pathogenic family history",
-           "Pathogenic family history 50",
-           "Pathogenic no family history",
-           "No pathogenic family history",
-           "No pathogenic no family history"),
+    Type=c("Pathogenic with family history",
+           "Pathogenic with family history before 50 yo",
+           "Pathogenic without family history",
+           "No pathogenic with family history",
+           "No pathogenic without family history"),
     
     Count=c(cases_samples_with_patho$n,
             fam_hist_num - sum(filter(cases_samples_with_patho, 
@@ -337,7 +343,7 @@ samples_with_patho_plot <- ggplot(data=samples_with_patho_count,
     coord_polar(theta = 'y') +
     scale_fill_discrete(name='') +
     labs(title="Percentage of samples with pathogenic variants") +
-    facet_wrap(~Sample_type) +
+    facet_wrap(~Sample_type, strip.position = "bottom") +
     # Add the flags.
     geom_label_repel(data = samples_with_patho_count,
                      aes(y = pos, label = paste0(Perc, "%")),
@@ -352,9 +358,12 @@ ggsave('Plots/percentage_samples_pathogenic_BRIDGES.png',
        samples_with_patho_plot, width=30, height=20, units='cm')
     
 
-## -------------------------------------------------------------------------
+## Pathogenic per family history type --------------------------------------
 ## Plot with the percentage of familial history type that contain pathogenic 
 ## variants. 
+
+# TODO: Change to barplot with yes or no pathogenic variants based on the total
+# number of samples for each type of family history.
 
 history_type <- cases_samples_pathogenic  %>%
     
@@ -363,10 +372,10 @@ history_type <- cases_samples_pathogenic  %>%
     
     # Set the priority of Family history types.
     mutate(Type=case_when(
-        str_detect(X1, "50BC") ~ "Family history BC less than 50 yo",
+        str_detect(X1, "50BC") ~ "Family history BC before 50 yo",
         str_detect(X1, "FirstBC") ~ "First Degree BC",
         str_detect(X1, "SecondBC") ~ "Second degree BC",
-        str_detect(X1, "50OC") ~ "Family history OC less than 50 yo",
+        str_detect(X1, "50OC") ~ "Family history OC before 50 yo",
         str_detect(X1, "FirstOC") ~ "First degree OC",
         str_detect(X1, "SecondOC") ~ "Second degree OC")) %>% 
 
@@ -376,6 +385,10 @@ history_type <- cases_samples_pathogenic  %>%
     # Count the frequency of family history type.
     count(Type) %>% 
     
+    add_column(Pathogenic="Yes", .before = "Type") %>% 
+    
+    add_row(Pathogenic="No", Type="Type", n=1)
+    
     # Add the percentage and position of the flags.
     transform(Perc = ave(n, FUN = function(x) round(x/sum(x), 4)*100)) %>% 
     mutate(csum = rev(cumsum(rev(Perc))), 
@@ -384,10 +397,10 @@ history_type <- cases_samples_pathogenic  %>%
     
 
 # Create the plot and save it as a pdf and as a png.
-samples_pathogenic_plot <- ggplot(data=history_type, aes(x=0, y=Perc, 
+samples_pathogenic_plot <- ggplot(data=history_type, aes(x=0, y=n, 
                                                                fill=Type)) +
-    theme_void() +
-    geom_col(col='black', size=0.05) +
+    theme() +
+    geom_bar(col='black', size=0.05) +
     coord_polar(theta = 'y') +
     scale_fill_discrete(name='') +
     labs(title="Percentage of pathogenic variants per familial history type") +
