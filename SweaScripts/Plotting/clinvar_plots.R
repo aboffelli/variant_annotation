@@ -19,6 +19,7 @@
 
 # TODO: Add comments
 library(tidyverse)
+library(ggrepel)
 
 pie_chart <- function(file_table, plot_name) {
     colnames(file_table)[1] <- 'V1'
@@ -27,31 +28,94 @@ pie_chart <- function(file_table, plot_name) {
         geom_col(col='black', size=0.05) +
         coord_polar(theta = 'y') +
         scale_fill_discrete(name='') +
-        labs(title=plot_name)
+        labs(title=plot_name) +
+        
+        # Label flags with the percentage.
+        geom_label_repel(data = file_table,
+                         aes(y = pos, label = paste0(Perc, "%")),
+                         size = 4.5, nudge_x = 1, show.legend = FALSE,
+                         max.overlaps = 30)
     return(x)
 }
 
 setwd("C:/Users/Arthu/Box/Notes/Tables/SWEA/ClinvarTables")
 setwd("~/Box/Notes/Tables/SWEA/ClinvarTables")
 
-pathogenic <- read.table('pathogenic_count_SWEA.txt', sep = '\t')[,-1]
-pathogenic <- as.data.frame(table(pathogenic))
-pathogenic <- cbind(pathogenic, Perc=round(pathogenic$Freq/sum(pathogenic$Freq)*100, 4))
+pathogenic <- read_tsv('pathogenic_count_SWEA.txt', col_names = F) %>% 
+    select(-X1) %>%
+    rename(Type = X2) %>% 
+    mutate(Type=case_when(
+        str_detect(Type, "Pathogenic") ~ "Pathogenic/Likely pathogenic",
+        TRUE ~ Type)) %>% 
+    count(Type) %>% 
+    
+    # Add the percentage column.
+    transform(Perc = ave(n,
+                         FUN = function(x) round(x/sum(x), 4)*100)) %>% 
+    
+    mutate(csum = rev(cumsum(rev(Perc))), 
+           pos = Perc/2 + lead(csum, 1),
+           pos = if_else(is.na(pos), Perc/2, pos))
 
-
-pathogenic_plot <- pie_chart(pathogenic, "Pathogenic Percentage")
+pathogenic_plot <- pie_chart(pathogenic, 
+                             "Percentage of pathogenic variants - SWEA")
+pathogenic_plot
 ggsave('Plots/pathogenic_percentage_SWEA.pdf', pathogenic_plot, width=30, height=20, units='cm')
 ggsave('Plots/pathogenic_percentage_SWEA.png', pathogenic_plot, width=30, height=20, units='cm')
 
 ################################################################################
 
-clinical_type <- read.table('clinical_type_SWEA.txt', sep = '\t')[,-1]
-clinical_type <- as.data.frame(table(clinical_type))
-clinical_type <- cbind(clinical_type, Perc=round(clinical_type$Freq/sum(clinical_type$Freq)*100, 2))
+clinical_type <- 
+    read_tsv('clinical_type_SWEA.txt', 
+                          col_names = F) %>% 
+    select(-X1) %>%
+    
+    # Add a column that differentiates only as Family history or 
+    # No family history, since we are no interested in the type of family 
+    # history right now. Add another column with family history below 50.
+    mutate(Type=case_when(
+               str_detect(X2, 
+                          "Benign|Likely_benign") ~ "Benign/Likely benign",
+               str_detect(X2, 
+                          "Pathogenic|Likely_pathogenic") ~ 
+                   "Pathogenic/Likely pathogenic",
+               str_detect(X2, "Uncertain") ~ "Uncertain significance",
+               str_detect(X2, "Conflicting") ~ "Conflicting interpretations",
+               TRUE ~ "Other")) %>%
+    
+    select(-X2) %>% 
+    
+    # Count the frequency
+    count(Type) %>% 
 
-clinical_type_plot <- pie_chart(clinical_type, 'Clinical Type Percentage')
-ggsave('Plots/clinical_type_percentage_SWEA.pdf', clinical_type_plot, width=30, height=20, units='cm')
-ggsave('Plots/clinical_type_percentage_SWEA.png', clinical_type_plot, width=30, height=20, units='cm')
+    # Add the percentage column.
+    transform(Perc = ave(n,
+                         FUN = function(x) round(x/sum(x), 4)*100)) %>% 
+    
+    mutate(csum = rev(cumsum(rev(Perc))), 
+           pos = Perc/2 + lead(csum, 1),
+           pos = if_else(is.na(pos), Perc/2, pos))
+
+clinical_type_plot <- ggplot(data=clinical_type, 
+                             aes(x='', y=Perc, 
+                                 fill=Type)) +
+    theme_void() +
+    geom_col(col='black', size=0.05) +
+    coord_polar(theta = 'y') +
+    scale_fill_discrete(name='') +
+    labs(title="Clinical type percentage - SWEA") +
+    
+    # Label flags with the percentage.
+    geom_label_repel(aes(y = pos, label = paste0(Perc, "%")),
+                     size = 4.5, nudge_x = 0.6, show.legend = FALSE,
+                     max.overlaps = 30)
+
+
+clinical_type_plot
+ggsave('Plots/clinical_type_percentage_SWEA.pdf', clinical_type_plot, width=30, 
+       height=20, units='cm')
+ggsave('Plots/clinical_type_percentage_SWEA.png', clinical_type_plot, width=30,
+       height=20, units='cm')
 
 ################################################################################
 

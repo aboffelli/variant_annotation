@@ -144,8 +144,7 @@ cases_clinical_type <- read_tsv('Cases/Tables/clinical_type_BRIDGES.txt',
                    "Pathogenic/Likely pathogenic",
                str_detect(X3, "Uncertain") ~ "Uncertain significance",
                str_detect(X3, "Conflicting") ~ "Conflicting interpretations",
-               str_detect(X3, "drug") ~"Drug response",
-               TRUE ~ "Not provided/No interpretation")) %>%
+               TRUE ~ "Other")) %>%
 
     select(-X1, -X3) %>% 
     
@@ -175,8 +174,7 @@ controls_clinical_type <- read_tsv('Controls/Tables/clinical_type_BRIDGES.txt',
             "Pathogenic/Likely pathogenic",
         str_detect(X3, "Uncertain") ~ "Uncertain significance",
         str_detect(X3, "Conflicting") ~ "Conflicting interpretations",
-        str_detect(X3, "drug") ~"Drug response",
-        TRUE ~ "Not provided/No interpretation")) %>% 
+        TRUE ~ "Other")) %>% 
     
     # Count the frequency
     count(Type) %>% 
@@ -198,12 +196,12 @@ clinical_type <- cases_clinical_type %>% full_join(controls_clinical_type)
 
 # Create the plot and save it as a pdf and as a png.
 clinical_type_plot <- pie_chart(clinical_type, 
-                               'Clinical Type Percentage')
+                               'Clinical Type Percentage - BRIDGES')
 print(clinical_type_plot)
 
-ggsave('Plots/v2_clinical_type_percentage_BRIDGES.pdf', 
+ggsave('Plots/clinical_type_percentage_BRIDGES.pdf', 
        clinical_type_plot, width=30, height=20, units='cm')
-ggsave('Plots/v2_clinical_type_percentage_BRIDGES.png', 
+ggsave('Plots/clinical_type_percentage_BRIDGES.png', 
        clinical_type_plot, width=30, height=20, units='cm')
 
 ## Most common genes -------------------------------------------------------
