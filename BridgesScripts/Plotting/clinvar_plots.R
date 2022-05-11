@@ -18,7 +18,10 @@
 ## -----------------------------------------------------------------------------
 library(tidyverse, quietly = T)
 library(ggrepel)
+
+setwd("C:/Users/Arthu/Box/Notes/Tables/BRIDGES/FilteredClinVarTables")
 setwd("/Users/student/Box/Notes/Tables/BRIDGES/FilteredClinVarTables")
+
 
 ## Functions ----
 pie_chart <- function(file_table, plot_name) {
@@ -104,7 +107,10 @@ control_pathogenic <- read_tsv('Controls/Tables/pathogenic_count_BRIDGES.txt',
 
 
 # Join Cases and Controls tables.
-pathogenic <- case_pathogenic %>% full_join(control_pathogenic) 
+pathogenic <- case_pathogenic %>% full_join(control_pathogenic) %>% 
+    mutate(Type = case_when(
+        str_detect(Type, "Pathogenic") ~ "Pathogenic/Likely pathogenic",
+        TRUE ~ Type))
     
 # Create the plot and save it as a pdf and as a png.
 pathogenic_plot <- pie_chart(pathogenic, "Percentage of pathogenic variants")
@@ -126,24 +132,31 @@ cases_clinical_type <- read_tsv('Cases/Tables/clinical_type_BRIDGES.txt',
     
     # Add a column that differentiates only as Family history or 
     # No family history, since we are no interested in the type of family 
-    # history right now.
+    # history right now. Add another column with family history below 50.
     mutate(Hist = if_else(X1 !="No_family_hist", "Family history", 
-                          "No family history")) %>% 
-    
-    # Add a column with family history below 50.
-    mutate(Hist50=if_else(str_detect(X1, "50BC"), "Family history 50", 
-                          '')) %>% 
-    select(-X1) %>% 
+                          "No family history"),
+           Hist50=if_else(str_detect(X1, "50BC"), "Family history 50", ''),
+           Type=case_when(
+               str_detect(X3, 
+                          "Benign|Likely_benign") ~ "Benign/Likely benign",
+               str_detect(X3, 
+                          "Pathogenic|Likely_pathogenic") ~ 
+                   "Pathogenic/Likely pathogenic",
+               str_detect(X3, "Uncertain") ~ "Uncertain significance",
+               str_detect(X3, "Conflicting") ~ "Conflicting interpretations",
+               str_detect(X3, "drug") ~"Drug response",
+               TRUE ~ "Not provided/No interpretation")) %>%
+
+    select(-X1, -X3) %>% 
     
     # Count the frequency
-    count(X3, Hist, Hist50) %>% 
-    rename(Type = X3, Freq = n) %>% 
+    count(Type, Hist, Hist50) %>% 
     
     # Add Cases column.
     add_column(Sample_type = "Cases", .before = "Type") %>% 
     
     # Add the percentage column. Based on the family history.
-    transform(Perc = ave(Freq, Hist, Hist50,
+    transform(Perc = ave(n, Hist, Hist50,
                          FUN = function(x) round(x/sum(x), 4)*100)) %>% 
     
     # Calculate the position of the flags grouping by family history.
@@ -154,18 +167,26 @@ cases_clinical_type <- read_tsv('Cases/Tables/clinical_type_BRIDGES.txt',
 
 controls_clinical_type <- read_tsv('Controls/Tables/clinical_type_BRIDGES.txt', 
                                    col_names = F) %>% 
-    select(X3) %>%
+    mutate(Type=case_when(
+        str_detect(X3, 
+                   "Benign|Likely_benign") ~ "Benign/Likely benign",
+        str_detect(X3, 
+                   "Pathogenic|Likely_pathogenic") ~ 
+            "Pathogenic/Likely pathogenic",
+        str_detect(X3, "Uncertain") ~ "Uncertain significance",
+        str_detect(X3, "Conflicting") ~ "Conflicting interpretations",
+        str_detect(X3, "drug") ~"Drug response",
+        TRUE ~ "Not provided/No interpretation")) %>% 
     
     # Count the frequency
-    count(X3) %>% 
-    rename(Type = X3, Freq = n) %>% 
+    count(Type) %>% 
     
     # Add the columns
     add_column(Sample_type = "Controls", .before = "Type") %>% 
     add_column(Hist = '', Hist50 = '', .after="Type") %>% 
     
     # Calculate the percentage.
-    transform(Perc = ave(Freq, Hist, Hist50,
+    transform(Perc = ave(n, Hist, Hist50,
                          FUN = function(x) round(x/sum(x), 4)*100)) %>% 
     
     # Calculate the position of the flags.
@@ -180,9 +201,9 @@ clinical_type_plot <- pie_chart(clinical_type,
                                'Clinical Type Percentage')
 print(clinical_type_plot)
 
-ggsave(paste0(sample_type, '/Plots/clinical_type_percentage_BRIDGES.pdf'), 
+ggsave('Plots/v2_clinical_type_percentage_BRIDGES.pdf', 
        clinical_type_plot, width=30, height=20, units='cm')
-ggsave(paste0(sample_type, '/Plots/clinical_type_percentage_BRIDGES.png'), 
+ggsave('Plots/v2_clinical_type_percentage_BRIDGES.png', 
        clinical_type_plot, width=30, height=20, units='cm')
 
 ## Most common genes -------------------------------------------------------
@@ -385,31 +406,37 @@ history_type <- cases_samples_pathogenic  %>%
     # Count the frequency of family history type.
     count(Type) %>% 
     
-    add_column(Pathogenic="Yes", .before = "Type") %>% 
-    
-    add_row(Pathogenic="No", Type="Type", n=1)
-    
-    # Add the percentage and position of the flags.
-    transform(Perc = ave(n, FUN = function(x) round(x/sum(x), 4)*100)) %>% 
-    mutate(csum = rev(cumsum(rev(Perc))), 
-           pos = Perc/2 + lead(csum, 1),
-           pos = if_else(is.na(pos), Perc/2, pos))
-    
+    add_column(Pathogenic="Yes", .before = "Type")
 
-# Create the plot and save it as a pdf and as a png.
-samples_pathogenic_plot <- ggplot(data=history_type, aes(x=0, y=n, 
-                                                               fill=Type)) +
-    theme() +
-    geom_bar(col='black', size=0.05) +
-    coord_polar(theta = 'y') +
-    scale_fill_discrete(name='') +
-    labs(title="Percentage of pathogenic variants per familial history type") +
+history_type <- history_type %>% 
+    add_row(Pathogenic = "No",
+            Type = total_n_samples$Type,
+            n = total_n_samples$n - history_type$n) %>% 
+    add_row(Pathogenic = c("Yes", "No"),
+            Type = "Controls",
+            n = c(controls_with_patho$n,
+                  c_total_num - controls_with_patho$n)) %>%
+    group_by(Type) %>% 
+    # Add the percentage and position of the flags.
+    mutate(Perc = round(n/sum(n), 4)*100,
+           label_y = cumsum(Perc)) %>% 
+    arrange(Type)
     
-    # Label flags with the percentage.
-    geom_label_repel(data = history_type,
-                     aes(y = pos, label = paste0(Perc, "%")),
-                     size = 4.5, nudge_x = 0.6, show.legend = FALSE,
-                     max.overlaps = 30)
+history_type_no_patho <- history_type %>% 
+    mutate(Pathogenic = "No",
+           n = total_n_samples$n - n)
+# Create the plot and save it as a pdf and as a png.
+samples_pathogenic_plot <- ggplot(data=history_type, aes(x=Type, 
+                                                         y=Perc,
+                                                         fill=Pathogenic)) +
+    geom_bar(stat='identity', col='black', size=0.05) +
+    scale_fill_discrete(name="Presence of pathogenic variants") +
+    labs(title="Percentage of pathogenic variants per familial history type",
+         x = "Type of family history") +
+    geom_label(aes(y=label_y, label=paste("n =", n)),
+               vjust = 1.1, colour = "black") +
+    scale_x_discrete(guide = guide_axis(n.dodge=2)) +
+    theme_classic()
 
 print(samples_pathogenic_plot)
 ggsave('Plots/type_history_percentage_BRIDGES.pdf', 
