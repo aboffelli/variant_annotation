@@ -264,8 +264,6 @@ ggsave('Plots/most_common_genes_pathogenic_variant_BRIDGES.png',
        most_common_plot, width=35, height=20, units='cm')
 
 ## Samples with pathogenic ---------------------------------------------------
-## Pie chart with the percentage of samples that contain at least one pathogenic
-## variant.
 
 # Number of samples in each type.
 total_n_samples <- read_tsv("Cases/family_history_cases.txt", col_names = F) %>% 
@@ -312,7 +310,9 @@ controls_with_patho <- controls_samples_pathogenic %>%
     distinct() %>% 
     count()
 
-
+## Pathogenic per sample ----
+## Pie chart with the percentage of samples that contain at least one pathogenic
+## variant.
 # Create a new data frame with the counts of samples.    
 cases_samples_with_patho_count <- tibble(
     Sample_type = "Cases",
@@ -422,9 +422,6 @@ history_type <- history_type %>%
            label_y = cumsum(Perc)) %>% 
     arrange(Type)
     
-history_type_no_patho <- history_type %>% 
-    mutate(Pathogenic = "No",
-           n = total_n_samples$n - n)
 # Create the plot and save it as a pdf and as a png.
 samples_pathogenic_plot <- ggplot(data=history_type, aes(x=Type, 
                                                          y=Perc,
