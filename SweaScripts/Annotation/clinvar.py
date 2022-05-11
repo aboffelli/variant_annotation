@@ -41,16 +41,16 @@ with open(r'/home/ar7343bo-s/Resources/variant_summary_GRCh37.txt',
             clinvar_dict[chrom][position].add(line)
 
 # New line to add in the vcf header.
-new_info = '##INFO=<ID=ClinVar,Number=.,Type=String,Description=' \
-           '"ClinVar annotation from python script clinvar.py. Format: ' \
-           'AlleleID|Type|Name|GeneID|GeneSymbol|HGNC_ID|' \
-           'ClinicalSignificance|ClinSigSimple|LastEvaluated|' \
-           'RS#(dbSNP)|nsv/esv(dbVar)|RCVaccession|PhenotypeIDS|' \
-           'PhenotypeList|Origin|OriginSimple|Assembly|ChromosomeAccession|' \
-           'Chromosome|Start|Stop|ReferenceAllele|AlternateAllele|' \
-           'Cytogenetic|ReviewStatus|NumberSubmitters|Guidelines|' \
-           'TestedInGTR|OtherIDs|SubmitterCategories|VariationID|' \
-           'PositionVCF|ReferenceAlleleVCF|AlternateAlleleVCF">\n'
+new_info = ('##INFO=<ID=ClinVar,Number=.,Type=String,Description='
+            '"ClinVar annotation from python script clinvar.py. Format: '
+            'AlleleID|Type|Name|GeneID|GeneSymbol|HGNC_ID|'
+            'ClinicalSignificance|ClinSigSimple|LastEvaluated|'
+            'RS#(dbSNP)|nsv/esv(dbVar)|RCVaccession|PhenotypeIDS|'
+            'PhenotypeList|Origin|OriginSimple|Assembly|ChromosomeAccession|'
+            'Chromosome|Start|Stop|ReferenceAllele|AlternateAllele|'
+            'Cytogenetic|ReviewStatus|NumberSubmitters|Guidelines|'
+            'TestedInGTR|OtherIDs|SubmitterCategories|VariationID|'
+            'PositionVCF|ReferenceAlleleVCF|AlternateAlleleVCF">\n')
 
 # File count that will be printed in the screen.
 file_count = 1
@@ -89,7 +89,7 @@ for file in list_of_files:
                             # Add the clinvar line to the info section of the
                             # vcf line
                             vcf_line[7] = vcf_line[7] + ';ClinVar=' + \
-                                                        clinvar_line.strip()
+                                          clinvar_line.strip()
 
                             break
                 # Write the line to the file.

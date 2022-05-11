@@ -18,7 +18,7 @@
 ## -----------------------------------------------------------------------------
 
 # TODO: Add comments
-library(ggplot2)
+library(tidyverse)
 
 pie_chart <- function(file_table, plot_name) {
     colnames(file_table)[1] <- 'V1'
@@ -31,8 +31,8 @@ pie_chart <- function(file_table, plot_name) {
     return(x)
 }
 
-# setwd("C:/Users/Arthu/Box/Notes/Tables/ClinvarTables")
-setwd("~/Box/Notes/Tables/SWEA/NewClinvarTables")
+setwd("C:/Users/Arthu/Box/Notes/Tables/SWEA/ClinvarTables")
+setwd("~/Box/Notes/Tables/SWEA/ClinvarTables")
 
 pathogenic <- read.table('pathogenic_count_SWEA.txt', sep = '\t')[,-1]
 pathogenic <- as.data.frame(table(pathogenic))
@@ -55,16 +55,22 @@ ggsave('Plots/clinical_type_percentage_SWEA.png', clinical_type_plot, width=30, 
 
 ################################################################################
 
-most_common <- read.table('most_common_pathogenic_var_SWEA.txt', sep='\t')
+most_common <- read_tsv('most_common_pathogenic_var_SWEA.txt', col_names=F) %>% 
+    separate(X1, c(NA, NA, NA, "Gene"), "_") %>% 
+    group_by(Gene) %>% 
+    summarise(n = sum(X2))
 
-most_common_plot <- ggplot(data=most_common[most_common$V2>5,], aes(x=reorder(V1, -V2), y=V2))+
+most_common_plot <- ggplot(data=most_common, aes(x=reorder(Gene, -n), y=n))+
     geom_bar(stat='identity') +
     theme_classic() +
     scale_x_discrete(guide = guide_axis(n.dodge=2)) +
-    labs(x='Variant', y='Count', title='Most common pathogenic breast cancer variants') +
+    labs(x='Variant', y='Count', 
+         title='Most common genes with pathogenic variants') +
     theme()
-ggsave('Plots/most_common_pathogenic_variant_SWEA.pdf', most_common_plot, width=35, height=20, units='cm')
-ggsave('Plots/most_common_pathogenic_variant_SWEA.png', most_common_plot, width=35, height=20, units='cm')
+ggsave('Plots/most_common_genes_pathogenic_variant_SWEA.pdf', 
+       most_common_plot, width=35, height=20, units='cm')
+ggsave('Plots/most_common_genes_pathogenic_variant_SWEA.png', 
+       most_common_plot, width=35, height=20, units='cm')
 
 ################################################################################
 
