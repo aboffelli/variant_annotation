@@ -64,7 +64,6 @@ ess_count <- read_tsv('ess_count_SWEA.txt', col_names = F) %>%
 
 count <- ese_count %>% full_join(ess_count)
 
-# TODO: fiz the label overlapping.
 # Create the plot and save them as pdfs.
 count_plot <- ggplot(data=count, aes(x=X2, y=X3, fill=X1)) +
     geom_bar(stat='identity', col='black') +
