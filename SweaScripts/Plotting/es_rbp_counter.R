@@ -18,21 +18,21 @@
 ##  
 ## -----------------------------------------------------------------------------
 
-
-library(ggplot2)
-library(dplyr)
+library(ggrepel)
+library(tidyverse)
 
 es_plot <- function(table, name) {
     ##--------------------------------------------------------------------------
     ## Function to create a bar plot using ggplot2.
     ##--------------------------------------------------------------------------
-    x <- ggplot(data=table, aes(x=V2, y=V3, fill=V1)) +
-        geom_bar(stat='identity') +
+    x <- ggplot(data=table, aes(x=X2, y=X3, fill=X1)) +
+        geom_bar(stat='identity', col='black') +
         theme_classic() +
-        labs(x='Variant Type', y='Count', title=name) +
+        labs(x='Variant Type', y='Percentage', title=name) +
         scale_fill_manual(name='Consequence',
-                          values=c('gray60', 'gray20', 'gray2')) +
-        geom_text(aes(y = label_y, label = Percentage), vjust=1.2, colour = "white", size=4)
+                          values=c('black', "gray30", "gray50")) +
+        geom_label(aes(y = label_y, label = paste0(Perc, '%')), vjust=1.1, 
+                  colour = "white")
         
         
     return(x)
@@ -40,51 +40,70 @@ es_plot <- function(table, name) {
 
 setwd("~/Box/Notes/Tables/SWEA/EseEssRbp")
 
-##------------------------------------------------------------------------------
+## ESE/ESS ------------------------------------------------------------
 ## ESE/ESS alterations count bar plots.
 
-ese_count <- read.table('ese_count_SWEA.txt', sep = '\t')
-ess_count <- read.table('ess_count_SWEA.txt', sep = '\t')
+ese_count <- read_tsv('ese_count_SWEA.txt', col_names = F) %>%
+    arrange(X2, rev(X1)) %>% 
+    # Add the percentage column and the position for the labels.
+    group_by(X2) %>% 
+    # Add the percentage and position of the flags.
+    mutate(Perc = round(X3/sum(X3) *100, 2),
+           label_y = cumsum(X3)) %>% 
+    add_column(Type="ESE")
+    
 
-# Add the percentage column and the position for the labels in both tables.
-ese_count <-  cbind(ese_count, 
-                    Percentage=paste0(round(ese_count$V3/sum(ese_count$V3)*100, 
-                                            2),'%')) %>%
-    arrange(V2, rev(V1)) %>%
-    group_by(V2) %>%
-    mutate(label_y=cumsum(V3))
+ess_count <- read_tsv('ess_count_SWEA.txt', col_names = F) %>% 
+    arrange(X2, rev(X1)) %>% 
+    # Add the percentage column and the position for the labels.
+    group_by(X2) %>% 
+    # Add the percentage and position of the flags.
+    mutate(Perc = round(X3/sum(X3) *100, 2),
+           label_y = cumsum(X3)) %>% 
+    add_column(Type="ESS")
 
-ess_count <-  cbind(ess_count, 
-                    Percentage=paste0(round(ess_count$V3/sum(ess_count$V3)*100,
-                                            2),'%')) %>%
-    arrange(V2, rev(V1)) %>%
-    group_by(V2) %>%
-    mutate(label_y=cumsum(V3))
+count <- ese_count %>% full_join(ess_count)
 
-# Create the plots and save them as pdfs.
-ese_count_plot <- es_plot(ese_count, 'ESE Count')
-ggsave('Plots/ese_count_SWEA.pdf', ese_count_plot)
-ess_count_plot <- es_plot(ess_count, 'ESS Count')
-ggsave('Plots/ess_count_SWEA.pdf', ess_count_plot)
+# TODO: fiz the label overlapping.
+# Create the plot and save them as pdfs.
+count_plot <- ggplot(data=count, aes(x=X2, y=X3, fill=X1)) +
+    geom_bar(stat='identity', col='black') +
+    theme_classic() +
+    labs(x='Variant Type', y='Count', title="ESE/ESS count") +
+    scale_fill_manual(name='Consequence',
+                      values=c('black', "gray30", "gray50")) +
+    geom_text(aes(y = label_y, label = paste0(Perc, '%')), vjust=1.1, 
+               colour = "white", check_overlap = T) +
+    facet_wrap(~ Type)
+count_plot
+ggsave("Plots/ese_ess_count.pdf", count_plot, width=30, height=20, units='cm')
+ggsave("Plots/ese_ess_count.png", count_plot, width=30, height=20, units='cm')
 
-
-##------------------------------------------------------------------------------
+## RBP existence -------------------------------------------------------
 ## Bar plot with the percentage of existence of overlapping RBP binding sites 
 ## in the variants.
 
-rbp_count <- read.table('rbp_count_SWEA.txt', sep = '\t')
+rbp_count <- read_tsv('rbp_count_SWEA.txt', col_names = F) %>%
+    arrange(X1, rev(X2)) %>% 
+    group_by(X1) %>% 
+    mutate(Perc = round(X3/sum(X3) *100, 2),
+           label_y = cumsum(Perc))
 
 # Create the plot and save it as a pdf.
-rbp_count_plot <- ggplot(data=rbp_count, aes(x=V2, y=V3, fill=V1))+
+rbp_count_plot <- ggplot(data=rbp_count, aes(x=X1, y=Perc, fill=X2))+
     geom_bar(stat='identity') +
     theme_classic() +
-    labs(x='RNA Binding Protein Site', y='Count', 
-         title='RNA Binding Protein Site Presence') +
-    scale_fill_manual(name='Variant type', values=c('gray60', 'gray20'))
+    labs(x='Variant type', y='Percentage', 
+         title='RNA Binding Protein binding site overlap') +
+    scale_fill_manual(name='RBP site presence', values=c('gray60', 'gray20')) +
+    geom_label(aes(y=label_y, label=paste0(Perc, '%', "\n", "n = ", X3)), 
+               vjust=0.5, colour="white")
+rbp_count_plot
 
 ggsave('Plots/rbp_count_SWEA.pdf', rbp_count_plot)
+ggsave('Plots/rbp_count_SWEA.png', rbp_count_plot)
 
-##------------------------------------------------------------------------------
+## RBP proteins ----------------------------------------------------------
 ## Plot for the frequency of proteins with overlapping RBP binding sites.
 
 rbp_protein <- read.table('rbp_protein_frequency_SWEA.txt', sep = '\t')
@@ -103,9 +122,10 @@ rbp_protein_plot <- ggplot(data=as.data.frame(table(rbp_protein)),
     labs(x='Protein Name', y='Frequency', title= "Frequency of RBP") + 
     coord_flip()
 
+rbp_protein_plot
 ggsave('Plots/rbp_protein_SWEA.pdf', rbp_protein_plot)
 
-##------------------------------------------------------------------------------
+## Number of RBPs per variant ---------------------------------------------
 ## Bar plot for the frequency of number of overlapping RBP binding sites per 
 ## variant.
 
