@@ -202,7 +202,7 @@ for dict_type in bridges_af:
         if bridges_fam_perc_50[position] != 0:
             bridges_fam_perc_50[position] = (
                 f"""{bridges_fam_perc_50[position] /
-                     len(fam_hist_samples):.6f} ({
+                     len(fam_hist_50):.6f} ({
                 fam_perc_50_count} samples)""")
         else:
             bridges_fam_perc_50[position] = "NA"
