@@ -81,57 +81,6 @@ gene_known_no_intron <- gene_known[!(gene_known$V2=='intron') &
                                        !(gene_known$V2=='intergenic'),]
 gene_novel_no_intron <- gene_novel[!(gene_novel$V2=='intron') & 
                                        !(gene_known$V2=='intergenic'),]
-# no_intron <- TRUE
-
-## -----------------------------------------------------------------------------
-## Total tables
-# x <- 1
-# if (!no_intron) {
-#     y <- 1008
-# } else {
-#     y <- 924
-# }
-# for (i in 0:2) {
-#     if (x < y*2) {
-#         gene_k_plot <- bar_plot(gene_known[x:(x + y - 1),], 
-#                                 "Variants by gene (Known variants)")
-#     }
-#     else {
-#         gene_k_plot <- bar_plot(gene_known[x:nrow(gene_known),], 
-#                                 "Variants by gene (Known variants)")
-#     }
-#     nam <- paste('gene_k_plot', i, sep='')
-#     assign(nam, gene_k_plot)
-#     x = x + y
-# }
-# grid_save <- arrangeGrob(gene_k_plot0, gene_k_plot1, gene_k_plot2)
-# if (!no_intron) {
-#     ggsave('Plots/known_variants_distribution_by_gene_SWEA.pdf', grid_save, limitsize = FALSE)
-# } else {
-#     ggsave('Plots/known_variants_distribution_by_gene_no_intron_SWEA.pdf', grid_save, limitsize = FALSE)
-# }
-# 
-# x <- 1
-# for (i in 0:2) {
-#     if (x < y*2) {
-#         gene_n_plot <- bar_plot(gene_novel[x:(x + y - 1),], 
-#                                 "Variants by gene (Novel variants)")
-#     }
-#     else {
-#         gene_n_plot <- bar_plot(gene_novel[x:nrow(gene_novel),], "Variants by gene (Novel variants)")
-#     }
-#     nam <- paste('gene_n_plot', i, sep='')
-#     assign(nam, gene_n_plot)
-#     x = x + y
-# }
-# 
-# grid_save <- arrangeGrob(gene_n_plot0, gene_n_plot1, gene_n_plot2)
-# if (!no_intron) {
-#     ggsave('Plots/novel_variants_distribution_by_gene_SWEA.pdf', grid_save, limitsize = FALSE)
-# } else {
-#     ggsave('Plots/novel_variants_distribution_by_gene_no_intron_SWEA.pdf', grid_save, limitsize = FALSE)
-# }
-# 
 
 ## -----------------------------------------------------------------------------
 ## Targeted genes tables

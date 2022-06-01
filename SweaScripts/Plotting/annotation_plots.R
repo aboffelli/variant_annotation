@@ -4,7 +4,7 @@
 ##
 ## Date created: Mon May  2 16:13:45 2022
 ##
-## GitHub: https://github.com/aboffelli/
+## GitHub: https://github.com/aboffelli/variant_annotation
 ##
 ## Description:
 ##
@@ -16,15 +16,15 @@
 ##  
 ## ----------------------------------------------------------------------------- 
 
-# TODO: Add comments
-library(ggplot2)
+
 library(reshape2)
 library(gridExtra)
+library(tidyverse)
 
 # Mac
 setwd("~/Box/Notes/Tables/SWEA")
 # Windows
-setwd("C:/Users/Arthu/Box/Notes/Tables")
+setwd("C:/Users/Arthu/Box/Notes/Tables/SWEA")
 
 fail_plot <- function(table, plot_name='') {
     p <- ggplot(data=melt(table), aes(x=variable, y=value)) +
@@ -57,7 +57,7 @@ percentage <- function(table) {
 }
 
 double_percentage_plot <- function(p_table, plot_name='', cols=c('darkred', 'darkblue')) {
-    p <- ggplot(p_table, aes(x=Group, y=Percentage, fill=Group)) +
+    p <- ggplot(p_table, aes(x=Group, y=Percentage)) +
         geom_bar(stat='identity', position = 'dodge') +
         scale_fill_manual(values=cols) +
         geom_text(aes(label=paste0(round(Percentage, 2), '%')), vjust=1.2) +
@@ -66,6 +66,8 @@ double_percentage_plot <- function(p_table, plot_name='', cols=c('darkred', 'dar
     return(p)
 }
 ################################################################################
+
+# Figure S1
 type_table <- read.table('type_comparison_SWEA.txt', header = T, sep="\t")[,-1]
 type_table_S4 <- read.table('Sor4/type_comparison_SWEA.txt', header = T, sep="\t")[,-1]
 
@@ -75,8 +77,53 @@ type_comparison_S4 <- plot_box(type_table_S4)
 ggsave("Plots/type_comparison_SWEA.png", plot=type_comparison)
 
 
-a_table <- percentage(type_table)
-a_table_S4 <- percentage(type_table_S4)
+known_table <- percentage(type_table[,1:2]) %>% mutate(type="SOR3", 
+                                                       group="Known", 
+                                                       Group=c("PASS", "FAIL"))
+known_table_S4 <- percentage(type_table_S4[,1:2]) %>% mutate(type="SOR4", 
+                                                             group="Known",
+                                                             Group=c("PASS",
+                                                                     "FAIL"))
+novel_table <- percentage(type_table[,5:6]) %>% mutate(type="SOR3", 
+                                                       group="Novel", 
+                                                       Group=c("PASS", 
+                                                               "FAIL"))
+novel_table_S4 <- percentage(type_table_S4[,5:6]) %>% mutate(type="SOR4", 
+                                                             group="Novel", 
+                                                             Group=c("PASS",
+                                                                     "FAIL"))
+
+s1_plot <- known_table %>% full_join(known_table_S4) %>% 
+    full_join(novel_table) %>% full_join(novel_table_S4) %>%
+    ggplot(aes(x=type, y=Percentage, fill=factor(Group, c("PASS","FAIL")))) +
+    geom_bar(stat='identity') +
+    facet_wrap(~group)+
+    labs(title= "Percentage of variants on target", x='') +
+    theme_classic() +
+    theme(text = element_text(size = 10)) +
+    geom_label(aes(label=paste0(round(Percentage, 2), '%\nn = ', Number)), 
+               vjust=1.01, size=2.5) +
+    theme(text = element_text(size = 20)) +
+    scale_fill_brewer(name= "", palette = "Greys")
+
+print(s1_plot)
+ggsave('Plots/known_on_target_SWEA.png', s1_plot)
+
+
+
+novel_plot <- novel_table %>% full_join(novel_table_S4) %>% 
+    ggplot(aes(x=type, y=Percentage, fill = Group)) +
+    geom_bar(stat='identity') +
+    labs(title= "Novel variants on target", x ='') +
+    theme_classic() +
+    theme(text = element_text(size = 10)) +
+    scale_fill_brewer(name = "Variant type", palette="Greys", labels=c("Novel variant on target", "Novel varian") +
+    geom_label(aes(label=paste0(round(Percentage, 2), '%\nn = ', Number)), 
+               vjust=1.01, size=2.5) +
+    theme(text = element_text(size = 20))
+
+print(novel_plot)
+ggsave("Plots/novel_on_target_SWEA.png", novel_plot)
 #write.table(a_table, file="percentage_novel_vs_known_SWEA.txt", sep="\t", row.names = F, quote = F)
 
 
@@ -140,6 +187,7 @@ grid.arrange(filters_k_on, filters_k_off, filters_n_on, filters_n_off)
 
 ################################################################################
 # Histogram for specific filters
+# Figure 3b
 sor_known_on <- read.table('KnownOnFail_sor3_values_table_SWEA.txt', sep='\t')
 sor_known_off <- read.table('KnownOffFail_sor3_values_table_SWEA.txt', sep='\t')
 sor_novel_on <- read.table('NovelOnFail_sor3_values_table_SWEA.txt', sep='\t')
@@ -150,8 +198,13 @@ total_sor_plot <- ggplot(data=total_sor, aes(x=V2, y=after_stat(density))) +
     geom_histogram(fill='gray', alpha=0.3, col='black', bins = n_bin) +
     geom_freqpoly(aes(col=V1)) +
     labs(x="SOR Value", y="Density", title = "SOR3 Filter") +
-    theme_classic()
-ggsave('sor3_distribution_SWEA.png', total_sor_plot)
+    theme_classic() +
+    scale_color_discrete(name="Variant type", 
+                         labels=c("Known variant off target",
+                                  "Known variant on target",
+                                  "Novel variant on target"))
+print(total_sor_plot)
+ggsave('Plots/sor3_distribution_SWEA.png', total_sor_plot)
 
 # ggplot(data=sor_known_on, aes(x=V2)) +
 #     geom_histogram(fill='gray', alpha=0.3, col='black', bins = n_bin) +

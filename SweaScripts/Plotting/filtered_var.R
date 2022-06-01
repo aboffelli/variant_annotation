@@ -16,19 +16,14 @@
 ##  
 ## ----------------------------------------------------------------------------- 
 
-# TODO: Add comments
-
 # Create plots for the variant filtering
 library(ggplot2)
 library(reshape2)
-library(plotly)
 
 
-# Mac
+
+# Tables path
 setwd("~/Box/Notes/Tables/SWEA/")
-
-# Windows
-# setwd("C:\\Users\\Arthu\\Box\\Notes")
 
 # Load tables
 t_table <- as.data.frame(read.table('hf-ml_comparison_SWEA.txt', header=T, sep="\t"))
@@ -92,15 +87,13 @@ ggsave("Plots/filter_plot_SWEA.png", plot=filter_plot)
 ggsave("Plots/filter_plot_SWEA.pdf", plot=filter_plot)
     
 no_jitter <- ggplot(data=melt(f_table), aes(x=variable, y=value)) +
-    geom_boxplot(aes(fill=variable), alpha=0.7) +
+    geom_boxplot(fill="gray80") +
     theme_classic() +
-    labs(x="Filter", y="Number of variants removed") +
-    scale_fill_manual(values=c("aquamarine", "coral", "cadetblue1", "lightpink1", "darkolivegreen1", "lightgoldenrod1", "cornflowerblue", "blueviolet", "indianred1", "lightskyblue3" ))
+    labs(x="Filter", y="Number of variants removed") + 
+    theme(text = element_text(size = 13))
+    
 
 print(no_jitter)
 ggsave("Plots/no_jitter_SWEA.png", plot=no_jitter)
 ggsave("Plots/no_jitter_SWEA.pdf", plot=no_jitter)
 
-# Interactive plots
-# ggplotly(total_box)
-# ggplotly(no_jitter)

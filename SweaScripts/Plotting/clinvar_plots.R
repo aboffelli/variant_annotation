@@ -102,8 +102,8 @@ clinical_type_plot <- ggplot(data=clinical_type,
     theme_void() +
     geom_col(col='black', size=0.05) +
     coord_polar(theta = 'y') +
-    scale_fill_discrete(name='') +
-    labs(title="Clinical type percentage - SWEA") +
+    scale_fill_brewer(name='', palette="Paired") +
+    labs(title="Clinical type percentage") +
     
     # Label flags with the percentage.
     geom_label_repel(aes(y = pos, label = paste0(Perc, "%")),
@@ -127,10 +127,10 @@ most_common <- read_tsv('most_common_pathogenic_var_SWEA.txt', col_names=F) %>%
 most_common_plot <- ggplot(data=most_common, aes(x=reorder(Gene, -n), y=n))+
     geom_bar(stat='identity') +
     theme_classic() +
-    scale_x_discrete(guide = guide_axis(n.dodge=2)) +
-    labs(x='Variant', y='Count', 
-         title='Most common genes with pathogenic variants') +
-    theme()
+    labs(x='Gene', y='Count', 
+         title='Frequency of pathogenic variants by gene') +
+    theme() +
+    coord_flip()
 ggsave('Plots/most_common_genes_pathogenic_variant_SWEA.pdf', 
        most_common_plot, width=35, height=20, units='cm')
 ggsave('Plots/most_common_genes_pathogenic_variant_SWEA.png', 

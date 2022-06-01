@@ -21,7 +21,7 @@ library(ggplot2)
 library(gridExtra)
 options(scipen = 100)
 
-setwd("~/Box/Notes/Tables/SWEA/RscuConserv")
+setwd("C:/Users/Arthu/Box/Notes/Tables/SWEA/RscuConserv")
 
 
 ## Delta RSCU plots ----
@@ -51,12 +51,13 @@ ggsave("Plots/rscu_histogram_SWEA.png", plot=rscu_hist, width=25, height = 20,
 # Create a violin plot.
 rscu_violin <- ggplot(data=rscu_table, aes(y=V1, x=V2, fill=V2)) +
     geom_violin() +
-    labs(x='', y='Delta-RSCU') +
+    labs(x='', y='??RSCU', title="Distribution of ??RSCU") +
     theme_classic() +
-    scale_fill_discrete(name='Variant type') +
-    scale_x_discrete(labels=element_blank()) +
+    scale_fill_brewer(palette="Greys") +
+    scale_x_discrete(labels=c("Known variants", "Novel variants")) +
     theme(text = element_text(size=20)) +
-    geom_hline(yintercept = 0, linetype="dashed")
+    geom_hline(yintercept = 0, linetype="dashed") +
+    guides(fill="none")
 rscu_violin
 
 # Save in pdf and png formats.
@@ -92,13 +93,14 @@ counts$Freq <- paste0(counts$FreqK, '/', counts$FreqN)
 conserv_PhyloP <- ggplot(data=conserv_table, 
                          aes(y=PhyloP, x=Consequence, fill=Exist)) +
     geom_violin() +
-    labs(title = 'PhyloP Distribution', y='PhyloP Score') +
-    scale_x_discrete(labels=paste0(counts$Cons, '\n', counts$Freq),
+    labs(title = 'phyloP distribution for SNVs', y='PhyloP Score') +
+    scale_x_discrete(labels=paste0(counts$Cons, '\nn= ', counts$Freq),
                      guide = guide_axis(n.dodge=2)) +
-    scale_fill_discrete(name='Variant type') +
+    scale_fill_brewer(name='Variant type', palette="Greys") +
     theme_classic() +
-    theme(text = element_text(size=20)) +
+    theme(text = element_text(size=18)) +
     geom_hline(yintercept = 0, linetype="dashed")
+
 conserv_PhyloP
 ggsave("Plots/conservation_phylop_SWEA.pdf", plot = conserv_PhyloP, width=35, 
        height = 20, units = 'cm')

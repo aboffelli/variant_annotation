@@ -38,7 +38,7 @@ es_plot <- function(table, name) {
     return(x)
 }
 
-setwd("~/Box/Notes/Tables/SWEA/EseEssRbp")
+setwd("C:/Users/Arthu/Box/Notes/Tables/SWEA/EseEssRbp")
 
 ## ESE/ESS ------------------------------------------------------------
 ## ESE/ESS alterations count bar plots.
@@ -68,12 +68,14 @@ count <- ese_count %>% full_join(ess_count)
 count_plot <- ggplot(data=count, aes(x=X2, y=X3, fill=X1)) +
     geom_bar(stat='identity', col='black') +
     theme_classic() +
-    labs(x='Variant Type', y='Count', title="ESE/ESS count") +
-    scale_fill_manual(name='Consequence',
-                      values=c('black', "gray30", "gray50")) +
-    geom_text(aes(y = label_y, label = paste0(Perc, '%')), vjust=1.1, 
-               colour = "white", check_overlap = T) +
-    facet_wrap(~ Type)
+    labs(x='', y='Count', title="ESE/ESS motifs changes") +
+    scale_fill_brewer(name='Consequence',
+                      palette="Greys", labels=c("Alter", "Create", "Remove")) +
+    scale_x_discrete(labels=c("Known variants", "Novel variants")) +
+    geom_text(aes(y = label_y, label = paste0(Perc, '%')), vjust=1.1,
+              check_overlap = T, size = 5) +
+    facet_wrap(~ Type) +
+    theme(text = element_text(size = 20))
 count_plot
 ggsave("Plots/ese_ess_count.pdf", count_plot, width=30, height=20, units='cm')
 ggsave("Plots/ese_ess_count.png", count_plot, width=30, height=20, units='cm')
@@ -94,9 +96,10 @@ rbp_count_plot <- ggplot(data=rbp_count, aes(x=X1, y=Perc, fill=X2))+
     theme_classic() +
     labs(x='Variant type', y='Percentage', 
          title='RNA Binding Protein binding site overlap') +
-    scale_fill_manual(name='RBP site presence', values=c('gray60', 'gray20')) +
+    scale_fill_brewer(name='RBP site presence', palette="Greys") +
     geom_label(aes(y=label_y, label=paste0(Perc, '%', "\n", "n = ", X3)), 
-               vjust=0.5, colour="white")
+               vjust=0.65) +
+    theme(text = element_text(size = 20))
 rbp_count_plot
 
 ggsave('Plots/rbp_count_SWEA.pdf', rbp_count_plot)
@@ -116,12 +119,15 @@ rbp_protein_plot <- ggplot(data=as.data.frame(table(rbp_protein)),
     geom_bar(stat='identity') +
     scale_x_discrete(guide = guide_axis(n.dodge=2)) +
     theme_classic() +
-    theme(axis.text.y=element_text(size=5)) +
-    scale_fill_manual(name='Variant type', values=c('gray60', 'gray20')) +
+    theme(axis.text.y=element_text(size=6)) +
+    scale_fill_manual(name='', values=c('gray60', 'gray20'), 
+                      labels=c("Known variants", "Novel variants")) +
     labs(x='Protein Name', y='Frequency', title= "Frequency of RBP") + 
-    coord_flip()
+    coord_flip() +
+    theme(text = element_text(size = 20))
 
 rbp_protein_plot
+ggsave('Plots/rbp_protein_SWEA.png', rbp_protein_plot)
 ggsave('Plots/rbp_protein_SWEA.pdf', rbp_protein_plot)
 
 ## Number of RBPs per variant ---------------------------------------------
@@ -137,8 +143,11 @@ rbp_variant <- as.data.frame(table(rbp_variant[,-1]))
 rbp_variant_plot <- ggplot(data=rbp_variant, aes(x=V2, y= Freq, fill=V3)) +
     geom_bar(stat='identity') + 
     theme_classic() +
-    scale_fill_manual(name='Variant type', values=c('gray60', 'gray20')) +
+    scale_fill_manual(name='', values=c('gray60', 'gray20'),
+                      labels=c("Known variants", "Novel variants")) +
     labs(x='Number of RBPs', y='Frequency', 
-    title='Frequency of number of RBP on each variant')
+    title='Frequency of RBP in the same variant')
 
+rbp_variant_plot
+ggsave('Plots/rbp_variant_SWEA.png', rbp_variant_plot)
 ggsave('Plots/rbp_variant_SWEA.pdf', rbp_variant_plot)
