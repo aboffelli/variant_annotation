@@ -2,6 +2,8 @@
 
 GitHub repository: https://github.com/aboffelli/variant_annotation
 
+Workflow to annotate variants from two studies (SWEA and BRIDGES) vcfs, quality checking plots, and selection of synonymous variants.
+
 ## Setting up the softwares and environments
 
 ### Installing GATK
