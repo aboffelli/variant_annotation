@@ -1,6 +1,6 @@
 # README file
 
-###### tags: `Variant Annotation`
+GitHub repository: https://github.com/aboffelli/variant_annotation
 
 ## Setting up the softwares and environments
 
